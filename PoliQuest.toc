@@ -1,5 +1,7 @@
-## Interface: 90001
+## Interface: 90002
+## Author: Polihayse
 ## Title: PoliQuest
+## Notes: Quest automation addon for Shadowlands
 ## SavedVariables: PoliSavedVars
 embeds.xml
 questdata.lua
