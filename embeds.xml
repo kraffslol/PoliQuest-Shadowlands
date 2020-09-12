@@ -1,0 +1,491 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+     <Script>
+     <![CDATA[
+        POLI_BACKDROP_DARK_DIALOG_32_32 = {
+            bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
+            edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+            tile = true,
+            tileEdge = true,
+            tileSize = 32,
+            edgeSize = 32,
+            insets = { left = 9, right = 9, top = 9, bottom = 9 },
+        }
+        POLIQUEST_ADDON_INFO = [[
+<html><body>
+<h1>|cFF5c8cc1PoliQuest|r</h1>
+<br/>
+<h2>|cFF5c8cc1Purpose:|r</h2>
+<br/>
+<p>PoliQuest is a simple Shadowlands questing addon that automates a significant portion of the leveling experience.</p>
+<br/>
+<h2>|cFF5c8cc1Features:|r</h2>
+<br/>
+<p>The following tasks are automated for Shadowlands questing:</p>
+<br/>
+<p>- Keybinding quest items to the PQButton</p>
+<p>- Accepting quests</p>
+<p>- Completing quests</p>
+<p>- Interacting with NPC quest dialog</p>
+<p>- Performing emotes for quest criteria</p>
+<p>- Setting hearth at Shadowlands inns (below lvl 60 only)</p>
+<p>- Choosing quest rewards (except for some edge cases)</p>
+<p>- Equipping quest loot upgrades</p>
+<br/>
+<h2>|cFF5c8cc1Keybinding the quest item button:|r</h2>
+<br/>
+<p>Put the following in a macro to keybind the button:</p>
+<br/>
+<p>|cFFAAAAAA/click PQButton|r</p>
+<br/>
+<p>PQNext and PQPrev can also be keybound to cycle through multiple quest items in your inventory while out of combat.  I use the following.</p>
+<br/>
+<p>|cFFAAAAAA/click [nomod]PQButton;[mod:alt]PQNext|r</p>
+<br/>
+<p>I don't keybind PQPrev since cycling through multiple quest items can be achieved by clicking one of these buttons alone.  However, the option to keybind both is there if you want it.</p>
+<br/>
+<h2>|cFF5c8cc1More info about the quest item button:|r</h2>
+<br/>
+<p>The button can only be updated out of combat. For example, if you obtain a quest with a quest item in combat, the addon will wait for combat to end before updating the quest item button.  Also, if you have multiple quest items, you will not be able to swap them on the PQButton unless you are out of combat.</p>
+<br/>
+<p>The button can also be clicked with the mouse cursor if designed. You can also mouse over it to get the quest item info. The button should only show when it is unlocked for moving, or you have one or multiple quest items.</p>
+<br/>
+<h2>|cFF5c8cc1Quest Loot Automation Algorithm:|r</h2>
+<br/>
+<p>1. If there is only 1 quest item reward, then select that one.</p>
+<p>|cFFFF0000-- Stop automation if:|r</p>
+<p>|cFFFF0000-- |r|cFFFFFF00"Automatically select quest rewards"|r|cFFFF0000 is disabled.|r</p>
+<p>|cFFFF0000-- Any of the quest rewards is not equippable.|r</p>
+<p>2. Get the player's current loot spec, or current spec if they don't have one.</p>
+<p>|cFFFF0000-- Stop automation if:|r</p>
+<p>|cFFFF0000-- Item is missing from the equip slot for one of the quest loot items.|r</p>
+<p>|cFFFF0000-- None of the items are for your preferred spec.|r</p>
+<p>3. Find the largest potential ilvl upgrade for this spec based on your equipped gear (considering that warforge is possible).</p>
+<p>4. If there is only one largest spec upgrade, then select that one.</p>
+<p>|cFFFF0000-- Stop automation if:|r</p>
+<p>|cFFFF0000-- |r|cFFFFFF00"Strict Quest Reward Automation"|r|cFFFF0000 is enabled.|r</p>
+<p>|cFFFF0000-- One of the largest upgrades is a trinket.|r</p>
+<p>5. Find the item that yields the largest increase in stats and choose that one. (For example, legs have more stats than gloves at equal ilvl, so legs get chosen.)</p>
+<br/>
+<h2>|cFF5c8cc1Author's Note:</h2>
+<br/>
+<p>This is my first addon. I'm still pretty new to making addons since I mostly only did WeakAuras stuff before. This addon doesn't use any libraries at all. This scroll box alone took me 4 days to make.  I'm going to learn to use libraries for my next addon.</p>
+<br/>
+<h2>I hope you like my first addon!</h2>
+<br/>
+<h2 align="right">- Polihayse</h2>
+</body></html>
+]]
+      ]]>
+     </Script>
+    <Frame name="PoliQuestConfigFrame" parent="UIParent" inherits="BackdropTemplate" clampedToScreen="true" movable="true" enableMouse="true" hidden="true">
+        <Anchors>
+            <Anchor point="CENTER" />
+        </Anchors>
+        <Size x="384" y="350"/>
+        <KeyValues>
+            <KeyValue key="backdropInfo" value="POLI_BACKDROP_DARK_DIALOG_32_32" type="global"/>
+        </KeyValues>
+        <Layers>
+        </Layers>
+       <Scripts>
+            <OnLoad inherit="prepend">
+                tinsert(UISpecialFrames, self:GetName())
+                self:RegisterForDrag("LeftButton")
+            </OnLoad>
+            <OnDragStart>
+                self:StartMoving()
+            </OnDragStart>
+            <OnDragStop>
+                self:StopMovingOrSizing()
+            </OnDragStop>
+            <OnHide>
+                PoliQuestAddonInfoFrame:Hide()
+            </OnHide>
+        </Scripts>
+        <Frames>
+            <Frame name="PoliQuestTitle">
+                <Size x="154" y="40" />
+                <Anchors>
+                    <Anchor point="TOP" x="0" y="12" />
+                </Anchors>
+                <Layers>
+                    <Layer level="ARTWORK">
+                        <Texture name="$parentBG1" file="Interface\DialogFrame\UI-DialogBox-Header">
+                            <TexCoords left=".31" right=".67" top="0" bottom=".63" />
+                            <Anchors>
+                                <Anchor point="TOPLEFT"/>
+                                <Anchor point="BOTTOMRIGHT"/>
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                    <Layer level="ARTWORK">
+                        <Texture name="$parentBG2" file="Interface\DialogFrame\UI-DialogBox-Header">
+                            <TexCoords left=".235" right=".275" top="0" bottom=".63" />
+                            <Size x="10" y="40" />
+                            <Anchors>
+                                <Anchor point="RIGHT"  relativePoint="LEFT" relativeTo="$parentBG1" />
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                    <Layer level="ARTWORK">
+                        <Texture name="$parentBG3" file="Interface\DialogFrame\UI-DialogBox-Header">
+                            <TexCoords left=".72" right=".76" top="0" bottom=".63" />
+                            <Size x="10" y="40" />
+                            <Anchors>
+                                <Anchor point="LEFT"  relativePoint="RIGHT" relativeTo="$parentBG1" />
+                            </Anchors>
+                        </Texture>
+                         <FontString inherits="GameFontNormal" text="PoliQuest Configuration">
+                            <Anchors>
+                                <Anchor point="CENTER" />
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+             </Frame>
+        
+             <Frame name="PoliQuestClose">
+                <Size x="17" y="40" />
+                <Anchors>
+                    <Anchor point="TOPRIGHT" x="-30" y="12" />
+                </Anchors>
+                <Layers>
+                    <Layer level="ARTWORK">
+                        <Texture name="$parentBG1" file="Interface\DialogFrame\UI-DialogBox-Header">
+                            <TexCoords left=".31" right=".67" top="0" bottom=".63" />
+                            <Anchors>
+                                <Anchor point="TOPLEFT"/>
+                                <Anchor point="BOTTOMRIGHT"/>
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                    <Layer level="ARTWORK">
+                        <Texture name="$parentBG2" file="Interface\DialogFrame\UI-DialogBox-Header">
+                            <TexCoords left=".235" right=".275" top="0" bottom=".63" />
+                            <Size x="10" y="40" />
+                            <Anchors>
+                                <Anchor point="RIGHT"  relativePoint="LEFT" relativeTo="$parentBG1" />
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                    <Layer level="ARTWORK">
+                        <Texture name="$parentBG3" file="Interface\DialogFrame\UI-DialogBox-Header">
+                            <TexCoords left=".72" right=".76" top="0" bottom=".63" />
+                            <Size x="10" y="40" />
+                            <Anchors>
+                                <Anchor point="LEFT"  relativePoint="RIGHT" relativeTo="$parentBG1" />
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                </Layers>
+                <Frames>
+                    <Button name="$parentButton" inherits="UIPanelCloseButton">
+                        <Anchors>
+                            <Anchor point="CENTER" x="1" y="0" />
+                        </Anchors>
+                        <Scripts>
+                            <OnClick>
+                                PoliQuestConfigFrame:Hide()
+                            </OnClick>
+                        </Scripts>
+                    </Button>
+                </Frames>
+             </Frame>
+             
+             <Frame name="PoliQuestOptionFrame1">
+                <Size x="180" y="40" />
+                <Anchors>
+                    <Anchor point="TOPLEFT" x="80" y="-50" />
+                </Anchors>
+                <Layers>
+                    <Layer level="ARTWORK">
+                        <FontString name="$parentLine1" inherits="GameFontNormal" text="Automatically accept and complete quests">
+                            <Anchors>
+                                <Anchor point="TOPLEFT" />
+                            </Anchors>
+                        </FontString>
+                        <FontString name="$parentLine2" inherits="GameFontNormal" text="Automatically select quest dialog">
+                            <Anchors>
+                                <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="$parentLine1"/>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+                <Frames>
+                    <CheckButton name="$parentCheckButton" inherits="OptionsCheckButtonTemplate" checked="true">
+                        <Size x="32" y="32" />
+                         <Anchors>
+                            <Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parent" x="-10" />
+                        </Anchors>
+                        <Scripts>
+                            <OnClick>
+                                if self:GetChecked() then
+                                    for _, v in ipairs(PoliQuestAndDialogHandler.Events) do
+                                        PoliQuestAndDialogHandler:RegisterEvent(v)
+                                    end
+                                    PoliHearthHandler:UnregisterAllEvents()
+                                    PoliQuestOptionFrame2CheckButton:Enable()
+                                    if PoliQuestOptionFrame2CheckButton:GetChecked() then
+                                        PoliQuestOptionFrame3CheckButton:Enable()
+                                    end
+                                else
+                                    if PoliQuestOptionFrame5CheckButton:GetChecked() then
+                                        for _, v in ipairs(PoliHearthHandler.Events) do
+                                            PoliHearthHandler:RegisterEvent(v)
+                                        end
+                                    end
+                                    PoliQuestOptionFrame2CheckButton:Disable()
+                                    PoliQuestOptionFrame3CheckButton:Disable()
+                                    PoliQuestAndDialogHandler:UnregisterAllEvents()
+                                end
+                            </OnClick>
+                        </Scripts>
+                    </CheckButton>
+                </Frames>
+             </Frame>
+             
+             <Frame name="PoliQuestOptionFrame2">
+                <Size x="180" y="40" />
+                <Anchors>
+                    <Anchor point="TOP" relativePoint="BOTTOM" relativeTo="PoliQuestOptionFrame1" x="20" />
+                </Anchors>
+                <Layers>
+                    <Layer level="ARTWORK">
+                        <FontString name="$parentLine1" inherits="GameFontNormal" text="Automatically select quest rewards">
+                            <Anchors>
+                                <Anchor point="LEFT" />
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+                <Frames>
+                    <CheckButton name="$parentCheckButton" inherits="OptionsCheckButtonTemplate" checked="true">
+                        <Size x="32" y="32" />
+                         <Anchors>
+                            <Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parent" x="-10" />
+                        </Anchors>
+                        <Scripts>
+                            <OnClick>
+                                if self:GetChecked() then
+                                    PoliQuestLootAutomationEnabled = true
+                                    PoliQuestOptionFrame3CheckButton:Enable()
+                                else
+                                    PoliQuestLootAutomationEnabled = false
+                                    PoliQuestOptionFrame3CheckButton:Disable()
+                                end
+                            </OnClick>
+                        </Scripts>
+                    </CheckButton>
+                </Frames>
+             </Frame>
+             
+             <Frame name="PoliQuestOptionFrame3">
+                <Size x="180" y="40" />
+                <Anchors>
+                    <Anchor point="TOP" relativePoint="BOTTOM" relativeTo="PoliQuestOptionFrame2" x="20" />
+                </Anchors>
+                <Layers>
+                    <Layer level="ARTWORK">
+                        <FontString name="$parentLine1" inherits="GameFontNormal" text="Strict Quest Reward Automation">
+                            <Anchors>
+                                <Anchor point="LEFT" />
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+                <Frames>
+                    <CheckButton name="$parentCheckButton" inherits="OptionsCheckButtonTemplate" checked="true">
+                        <Size x="32" y="32" />
+                         <Anchors>
+                            <Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parent" x="-10" />
+                        </Anchors>
+                        <Scripts>
+                            <OnClick>
+                                if self:GetChecked() then
+                                    PoliQuestStrictAutomation = true
+                                else
+                                    PoliQuestStrictAutomation = false
+                                end
+                            </OnClick>
+                        </Scripts>
+                    </CheckButton>
+                </Frames>
+             </Frame>
+             
+             <Frame name="PoliQuestOptionFrame4">
+                <Size x="180" y="40" />
+                <Anchors>
+                    <Anchor point="TOP" relativePoint="BOTTOM" relativeTo="PoliQuestOptionFrame3" x="-40" y="-15" />
+                </Anchors>
+                <Layers>
+                    <Layer level="ARTWORK">
+                        <FontString name="$parentLine1" inherits="GameFontNormal" text="Automatically equip quest loot upgrades">
+                            <Anchors>
+                                <Anchor point="LEFT" />
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+                <Frames>
+                    <CheckButton name="$parentCheckButton" inherits="OptionsCheckButtonTemplate" checked="true">
+                        <Size x="32" y="32" />
+                         <Anchors>
+                            <Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parent" x="-10" />
+                        </Anchors>
+                        <Scripts>
+                            <OnClick>
+                                if self:GetChecked() then
+                                    for _, v in ipairs(PoliQuestLootHandler.Events) do
+                                        PoliQuestLootHandler:RegisterEvent(v)
+                                    end
+                                else
+                                    PoliQuestLootHandler:UnregisterAllEvents()
+                                end
+                            </OnClick>
+                        </Scripts>
+                    </CheckButton>
+                </Frames>
+             </Frame>
+             
+             <Frame name="PoliQuestOptionFrame5">
+                <Size x="180" y="40" />
+                <Anchors>
+                    <Anchor point="TOP" relativePoint="BOTTOM" relativeTo="PoliQuestOptionFrame4" y="-15" />
+                </Anchors>
+                <Layers>
+                    <Layer level="ARTWORK">
+                        <FontString name="$parentLine1" inherits="GameFontNormal" text="Automatically set hearth stone">
+                            <Anchors>
+                                <Anchor point="LEFT" />
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+                <Frames>
+                    <CheckButton name="$parentCheckButton" inherits="OptionsCheckButtonTemplate" checked="true">
+                        <Size x="32" y="32" />
+                         <Anchors>
+                            <Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$parent" x="-10" />
+                        </Anchors>
+                        <Scripts>
+                            <OnClick>
+                                if self:GetChecked() then
+                                    if not PoliQuestOptionFrame1CheckButton:GetChecked() then
+                                        for _, v in ipairs(PoliHearthHandler.Events) do
+                                            PoliHearthHandler:RegisterEvent(v)
+                                        end
+                                    end
+                                else
+                                    PoliHearthHandler:UnregisterAllEvents()
+                                end
+                            </OnClick>
+                        </Scripts>
+                    </CheckButton>
+                </Frames>
+             </Frame>
+             
+             <Button name="$parentToggleButton" inherits="UIPanelButtonTemplate" text="Toggle Button">
+                <Size x="153" y="22"/>
+                <Anchors>
+                    <Anchor point="CENTER" relativePoint="BOTTOM" x="0" y="50"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        self:RegisterEvent("PLAYER_REGEN_ENABLED")
+                        self:RegisterEvent("PLAYER_REGEN_DISABLED")
+                    </OnLoad>
+                    <OnClick>
+                        if PQButton:IsVisible() then
+                            LockPoliQuestButton()
+                        else
+                            UnlockPoliQuestButton()
+                        end
+                    </OnClick>
+                    <OnEvent>
+                        if event == "PLAYER_REGEN_DISABLED" then
+                            self:Disable()
+                        else
+                            self:Enable()
+                        end
+                    </OnEvent>
+                </Scripts>
+             </Button>
+             
+             <Button name="$parentInfoButton">
+                <Size x="32" y="32"/>
+                <Anchors>
+                    <Anchor point="CENTER" relativePoint="BOTTOM" x="130" y="50"/>
+                </Anchors>
+                <NormalTexture file="Interface\COMMON\help-i">
+                    <TexCoords left=".2" right=".8" top=".2" bottom=".8" />
+                </NormalTexture>
+                <Scripts>
+                    <OnClick>
+                        if PoliQuestAddonInfoFrame:IsVisible() then
+                            PoliQuestAddonInfoFrame:Hide()
+                        else
+                            PoliQuestAddonInfoFrame:Show()
+                        end
+                    </OnClick>
+                </Scripts>
+             </Button>
+        </Frames>
+    </Frame>
+    
+    <Frame name="PoliQuestAddonInfoFrame" parent="PoliQuestConfigFrame" inherits="BackdropTemplate" clampedToScreen="true">
+        <Anchors>
+            <Anchor point="LEFT" relativePoint="RIGHT"/>
+        </Anchors>
+        <Size x="384" y="350"/>
+        <KeyValues>
+            <KeyValue key="backdropInfo" value="POLI_BACKDROP_DARK_DIALOG_32_32" type="global"/>
+        </KeyValues>
+       <Scripts>
+            <OnLoad inherit="prepend">
+                tinsert(UISpecialFrames, self:GetName())
+            </OnLoad>
+        </Scripts>
+        <Frames>
+            <Button name="$parentCloseButton" inherits="UIPanelButtonTemplate" text="Close">
+                <Size x="100" y="22"/>
+                <Anchors>
+                    <Anchor point="CENTER" relativePoint="BOTTOM" x="0" y="30"/>
+                </Anchors>
+                <Scripts>
+                    <OnClick>
+                        self:GetParent():Hide()
+                    </OnClick>
+                </Scripts>
+             </Button>
+             <ScrollFrame name="PoliQuestInfoScroll" inherits="UIPanelScrollFrameTemplate" toplevel="true">
+                <Anchors>
+                    <Anchor point="TOP" y="-30" />
+                    <Anchor point="BOTTOM" relativeTo="$parentCloseButton" y="30" />
+                    <Anchor point="RIGHT" x="-40" />
+                    <Anchor point="LEFT" x="40" />
+                </Anchors>
+                <ScrollChild>
+                    <Frame name="$parentTextFrame">
+                        <Size x="304" y="800" />
+                        <Frames>
+                            <SimpleHTML name="$parentText" setAllPoints="true">
+                                <Size x="304" y="800" />
+                                <FontString font="Fonts\FRIZQT__.TTF">
+                                    <FontHeight val="11"/>
+                                </FontString>
+                                <FontStringHeader1 inherits="GameFontHighlightLarge" />
+                                <FontStringHeader2 inherits="GameFontHighlight" />
+                                <Scripts>
+                                    <OnLoad>
+                                        self:SetText(POLIQUEST_ADDON_INFO)
+                                    </OnLoad>
+                                </Scripts>
+                            </SimpleHTML>
+                        </Frames>
+                    </Frame>
+                </ScrollChild>
+            </ScrollFrame>
+        </Frames>
+    </Frame>
+</Ui> 

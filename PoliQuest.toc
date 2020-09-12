@@ -1,5 +1,6 @@
 ## Interface: 90001
 ## Title: PoliQuest
 ## SavedVariables: PoliSavedVars
+embeds.xml
 questdata.lua
 PoliQuest.lua

@@ -4,16 +4,21 @@ local questItems = addonTable.questItems
 local itemEquipLocToEquipSlot = addonTable.itemEquipLocToEquipSlot
 local questNameToID = addonTable.questNameToID
 local dialogWhitelist = addonTable.dialogWhitelist
+local innWhitelist = addonTable.innWhitelist
 
 SLASH_PoliQuest1 = "/poliquest"
 SLASH_PoliQuest2 = "/pq"
 
+local registerEvents = function(frame)
+    for _, v in ipairs(frame.Events) do
+        frame:RegisterEvent(v)
+    end
+end
+
 local questButtonManager
 local buttonLocked = true
 local onEnterScript
-local unlockButton = function()
-
-    -- put icon in place and show if no current quest item
+UnlockPoliQuestButton = function()
     local button = questButtonManager.Button
     if not button:IsVisible() then
         buttonTexture = button.Texture:GetTexture()
@@ -21,43 +26,51 @@ local unlockButton = function()
         onEnterScript = button:GetScript("OnEnter")
         button:SetScript("OnEnter", nil)
         button.PrevButton:Disable()
+        button.PrevButton:Show()
         button.NextButton:Disable()
+        button.PrevButton:Show()
+        button.ViewPrev.Texture:SetTexture(134400)
+        button.ViewPrev:Disable()
+        button.ViewPrev:Show()
+        button.ViewNext.Texture:SetTexture(134400)
+        button.ViewNext:Disable()
+        button.ViewNext:Show()
         button:Show()
     end
-    
-    -- make button movable
+    button.LockButton:Show()
     button:SetMovable(true)
-    button:RegisterForDrag("LeftButton")
-    button:SetScript("OnDragStart", function(self) self:StartMoving() end)
-    button:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
-    -- show "Unlocked" text
-    
+    buttonLocked = false
 end
 
-local lockButton = function()
+LockPoliQuestButton = function()
     local button = questButtonManager.Button
     if onEnterScript then
-        onEnterScript = button:GetScript("OnEnter", onEnterScript)
+        button:SetScript("OnEnter", onEnterScript)
+        onEnterScript = nil
         button:Hide()
     end
+    button.LockButton:Hide()
     button:SetMovable(false)
+    buttonLocked = true
+    print("Button will show when you have a Shadowlands quest item in your bags.")
+    print("|cFF5c8cc1/pq toggle:|r to show/move button again.")
 end
 
 SlashCmdList["PoliQuest"] = function(msg)
     local cmd, arg = string.split(" ", msg)
     if cmd == "" then
-        -- no message. open configuration menu
-        -- allow user to edit location of UI elements
-        -- allow user to disable certain features of the addon
+        if PoliQuestConfigFrame:IsVisible() then
+            PoliQuestConfigFrame:Hide()
+        else
+            PoliQuestConfigFrame:Show()
+        end
     elseif cmd == "toggle" then
         if InCombatLockdown() then
             print("Quest Item Button can only be locked/unlocked outside of combat.")
         elseif buttonLocked then
-            unlockButton()
-            buttonLocked = false
+            UnlockPoliQuestButton()
         else
-            lockButton()
-            buttonLocked = true
+            LockPoliQuestButton()
         end
     else
         print("|cFF5c8cc1/pq:|r feature control")
@@ -202,7 +215,7 @@ do -- Manage usable quest items
         or event == "PLAYER_ENTERING_WORLD" then
             throttleItemCheck = GetTime()
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-            print(...)
+            --print(...)
             if currentItemIndex and questItems[currentItems[currentItemIndex]]["spellID"] == select(3, ...) and questItems[currentItems[currentItemIndex]]["cooldown"] then
                 self.Cooldown:SetCooldown(GetTime(), questItems[currentItems[currentItemIndex]]["cooldown"])
             end
@@ -223,13 +236,15 @@ do -- Manage usable quest items
         end
     end
     
+    -- quest item button manager
     questButtonManager = CreateFrame("Frame", "PoliQuestButtonManager", UIParent)
-    local questButton = CreateFrame("Button", "PoliQuestItemButton", questButtonManager, "SecureActionButtonTemplate")
-    questButtonManager.Button = questButton
     questButtonManager:SetScript("OnUpdate", onUpdate)
+    
+    -- quest item button
+    local questButton = CreateFrame("Button", "PQButton", questButtonManager, "SecureActionButtonTemplate")
     questButton.Texture = questButton:CreateTexture("PoliQuestItemButtonTexture","BACKGROUND")
     questButton.Texture:SetAllPoints(questButton)
-    questButton:SetPoint("CENTER", UIParent, -300, -175)
+    questButton:SetPoint("CENTER", UIParent, 0, 0)
     questButton:SetSize(64, 64)
     questButton:SetAttribute("type", "item")
     questButton:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -249,15 +264,18 @@ do -- Manage usable quest items
         GameTooltip:ClearLines()
         GameTooltip:Hide()
     end)
-    
+    questButton:RegisterForDrag("LeftButton")
+    questButton:SetScript("OnDragStart", function(self) if self:IsMovable() then self:StartMoving() end end)
+    questButton:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
     questButton.Cooldown = CreateFrame("Cooldown", "PoliQuestItemCooldown", questButton, "CooldownFrameTemplate")
     questButton.Cooldown:SetAllPoints(questButton)
-    
     questButton.FontString = questButton:CreateFontString("PoliQuestItemCount", "BACKGROUND")
     questButton.FontString:SetPoint("BOTTOMRIGHT", -4, 4)
     questButton.FontString:SetTextHeight(16)
+    questButtonManager.Button = questButton
     
-    local prevItemButton = CreateFrame("Button", "PoliPrevItemButton", questButton, "SecureActionButtonTemplate")
+    -- left arrow button
+    local prevItemButton = CreateFrame("Button", "PQPrev", questButton, "SecureActionButtonTemplate")
     prevItemButton:SetPoint("BOTTOMRIGHT", "$parent", "TOP", 0, 0)
     prevItemButton:SetSize(32, 32)
     prevItemButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
@@ -267,7 +285,8 @@ do -- Manage usable quest items
     prevItemButton:SetScript("OnClick", prevItemButton_OnClick)
     questButton.PrevButton = prevItemButton
     
-    local nextItemButton = CreateFrame("Button", "PoliNextItemButton", questButton, "SecureActionButtonTemplate")
+    -- right arrow button
+    local nextItemButton = CreateFrame("Button", "PQNext", questButton, "SecureActionButtonTemplate")
     nextItemButton:SetPoint("BOTTOMLEFT", "$parent", "TOP", 0, 0)
     nextItemButton:SetSize(32, 32)
     nextItemButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
@@ -277,6 +296,7 @@ do -- Manage usable quest items
     nextItemButton:SetScript("OnClick", nextItemButton_OnClick)
     questButton.NextButton = nextItemButton
     
+    -- left item view
     local prevView = CreateFrame("Button", "PoliPrevViewButton", questButton, "SecureActionButtonTemplate")
     prevView:SetPoint("RIGHT", "$parent", "LEFT", -4, 0)
     prevView:SetSize(32, 32)
@@ -285,6 +305,7 @@ do -- Manage usable quest items
     prevView.Texture:SetAllPoints(prevView)
     questButton.ViewPrev = prevView
     
+    -- right item view
     local nextView = CreateFrame("Button", "PoliNextViewButton", questButton, "SecureActionButtonTemplate")
     nextView:SetPoint("LEFT", "$parent", "RIGHT", 4, 0)
     nextView:SetSize(32, 32)
@@ -293,16 +314,37 @@ do -- Manage usable quest items
     nextView.Texture:SetAllPoints(nextView)
     questButton.ViewNext = nextView
     
+    -- lock button
+    local lockButton = CreateFrame("Button", "PoliLockButton", questButton, "SecureActionButtonTemplate")
+    lockButton:SetPoint("TOPLEFT", "$parent", "BOTTOMRIGHT", 0, 0)
+    lockButton:SetSize(32, 32)
+    lockButton:SetNormalTexture("Interface\\Buttons\\LockButton-Unlocked-Up")
+    lockButton:SetPushedTexture("Interface\\Buttons\\LockButton-Unlocked-Down")
+    lockButton:SetDisabledTexture("Interface\\Buttons\\CancelButton-Up")
+    lockButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+    lockButton:SetScript("OnClick", LockPoliQuestButton)
+    lockButton:RegisterEvent("PLAYER_REGEN_ENABLED")
+    lockButton:RegisterEvent("PLAYER_REGEN_DISABLED")
+    lockButton:SetScript("OnEvent", function(self, event)
+        if event == "PLAYER_REGEN_DISABLED" then
+            lockButton:Disable()
+        else
+            lockButton:Enable()
+        end
+    end)
+    lockButton:Hide()
+    questButton.LockButton = lockButton
+    lockButton.FontString = lockButton:CreateFontString("PoliLockButtonText", "BACKGROUND")
+    lockButton.FontString:SetPoint("RIGHT", "$parent", "LEFT", 0, 0)
+    lockButton.FontString:SetFont("Fonts\\FRIZQT__.TTF", 20, "OUTLINE, MONOCHROME")
+    lockButton.FontString:SetText("MOVE")
+    
     updateButton(questButton, true)
     if not buttonLocked then
         unlockButton()
     end
 end
 
-
-local questAndDialogHandler
-local transmogCare = false
-local upgradeCare = false
 do -- Manage quests and dialog
     local questIDToName = {}
     local numQuests = 0
@@ -357,6 +399,7 @@ do -- Manage quests and dialog
         local actQuests = C_GossipInfo.GetActiveQuests()
         for i, v in ipairs(actQuests) do
             if questIDToName[v.questID] and v.isComplete then
+                print("onGossipShow | SelectActiveQuest: " .. v.questID)
                 C_GossipInfo.SelectActiveQuest(i)
                 return
             end
@@ -365,11 +408,11 @@ do -- Manage quests and dialog
         local availableQuests = C_GossipInfo.GetAvailableQuests()
         for i, v in ipairs(availableQuests) do
             if questIDToName[v.questID] then
+                print("onGossipShow | SelectAvailableQuest: " .. v.questID)
                 C_GossipInfo.SelectAvailableQuest(i)
                 return
             end
         end
-    
     
         for _, v in ipairs(activeQuests) do
             local questDialog = dialogWhitelist[questIDToName[v]]
@@ -391,12 +434,8 @@ do -- Manage quests and dialog
         end
     end
     
-    local whitelistedInns = {
-        ["Host Ta'rela"] = true,
-        ["Slumbar Valorum"] = true
-    }
     local onGossipShow_setHearth = function()
-        if whitelistedInns[GossipFrameNpcNameText:GetText()] then
+        if innWhitelist[GossipFrameNpcNameText:GetText()] then
             local gossipOptions = C_GossipInfo.GetOptions()
             local numOptions = C_GossipInfo.GetNumOptions()
             for i=1, numOptions do
@@ -424,23 +463,25 @@ do -- Manage quests and dialog
         end
         table.insert(activeQuests, questID)
         --print(string.join(" ", "Quest added:", C_QuestLog.GetTitleForQuestID(questID), questID))
-        printActiveQuests()
+        --printActiveQuests()
     end
     
     local removeQuest = function(questID)
         for i, v in ipairs(activeQuests) do
             if v == questID then
                 table.remove(activeQuests, i)
-                print(string.join(" ", "Quest removed:", C_QuestLog.GetTitleForQuestID(questID), questID))
-                printActiveQuests()
+                --print(string.join(" ", "Quest removed:", C_QuestLog.GetTitleForQuestID(questID), questID))
+                --printActiveQuests()
             end
         end
     end
     
+    -- completes a quest
     local completeQuest = function()
         for i=1, GetNumActiveQuests() do
             local questName, isComplete = GetActiveTitle(i)
             if questNameToID[questName] and isComplete then
+                print("onQuestGreeting | completeQuest | SelectActiveQuest: " .. questName)
                 SelectActiveQuest(i)
                 removeQuest(questName)
                 return
@@ -448,10 +489,12 @@ do -- Manage quests and dialog
         end
     end
     
+    -- adds a quest
     local acceptQuest = function()
         for i=1, GetNumAvailableQuests() do
             local questID = select(5, GetAvailableQuestInfo(i))
             if questIDToName[questID] then
+                print("onQuestGreeting | acceptQuest | SelectAvailableQuest: " .. questID)
                 SelectAvailableQuest(i)
                 insertQuest(questID)
                 return
@@ -467,18 +510,22 @@ do -- Manage quests and dialog
         end
     end
 
+    -- adds a quest
     local onQuestDetail = function()
         if QuestInfoTitleHeader and questNameToID[QuestInfoTitleHeader:GetText()] then
             insertQuest(questNameToID[QuestInfoTitleHeader:GetText()])
+             print("onQuestDetail | AcceptQuest: " .. questNameToID[QuestInfoTitleHeader:GetText()])
             AcceptQuest()
         end
     end
 
+    -- completes a quest
     local onQuestProgress = function()
         if QuestProgressTitleText then
             local questID = questNameToID[QuestProgressTitleText:GetText()]
             if questID and C_QuestLog.IsComplete(questID) then
                 removeQuest(questNameToID[QuestProgressTitleText:GetText()])
+                print("onQuestProgress | CompleteQuest: " .. questID)
                 CompleteQuest()
             end
         end
@@ -641,7 +688,7 @@ do -- Manage quests and dialog
         local numChoices = GetNumQuestChoices()
         if numChoices <= 1 then
             return 1
-        elseif transmogCare then
+        elseif not PoliQuestLootAutomationEnabled then
             return
         else
             local lootSpec = GetLootSpecialization()
@@ -657,7 +704,7 @@ do -- Manage quests and dialog
                 return  -- no spec upgrades or missing equipped item. let player choose.
             elseif #largestSpecUpgrade == 1 then
                 return largestSpecUpgrade[1]["choiceIndex"]
-            elseif upgradeCare then
+            elseif PoliQuestStrictAutomation then
                 return
             else
                 local maxStatGrowthItems = getMaxStatGrowthItems(largestSpecUpgrade)
@@ -670,23 +717,27 @@ do -- Manage quests and dialog
         end
     end
     
+    -- completes a quest
     local onQuestComplete = function()
         if QuestInfoTitleHeader and questNameToID[QuestInfoTitleHeader:GetText()] then
             removeQuest(QuestInfoTitleHeader:GetText())
             local questRewardIndex = getQuestRewardChoice()
             if questRewardIndex then
+                print("onQuestComplete | GetQuestReward: " .. questNameToID[QuestInfoTitleHeader:GetText()])
                 GetQuestReward(questRewardIndex)
             end
         end
     end
 
+    -- adds a quest
     local onQuestLogUpdate = function()
         local num = GetNumAutoQuestPopUps()
         if num > 0 then
             for i=1,num do
                 local questID = GetAutoQuestPopUp(i)
                 if questIDToName[questID] then
-                    AutoQuestPopUpTracker_OnMouseDown(AUTO_QUEST_POPUP_TRACKER_MODULE:GetBlock(questID))
+                    print("onQuestLogUpdate | AutoQuestPopUpTracker_OnMouseDown: " .. questID)
+                    AutoQuestPopUpTracker_OnMouseDown(CAMPAIGN_QUEST_TRACKER_MODULE:GetBlock(questID))
                 end
             end
         end
@@ -695,8 +746,8 @@ do -- Manage quests and dialog
     local onConfirmBinder = function()
         if UnitLevel("player") < 60 then
             local targetName = UnitName("target")
-            if GossipFrameNpcNameText:GetText() and whitelistedInns[GossipFrameNpcNameText:GetText()]
-            or targetName and whitelistedInns[targetName] then
+            if GossipFrameNpcNameText:GetText() and innWhitelist[GossipFrameNpcNameText:GetText()]
+            or targetName and innWhitelist[targetName] then
                 StaticPopup1Button1:Click()
             end
         end
@@ -705,7 +756,9 @@ do -- Manage quests and dialog
     local onEvent = function(self, event, ...)
         if event == "GOSSIP_SHOW" then
             onGossipShow_questGossip()
-            onGossipShow_setHearth()
+            if PoliQuestOptionFrame5CheckButton:GetChecked() then
+                onGossipShow_setHearth()
+            end
         elseif event == "GOSSIP_CONFIRM" then
             
         elseif event == "QUEST_GREETING" then
@@ -715,7 +768,6 @@ do -- Manage quests and dialog
         elseif event == "QUEST_PROGRESS" then
             onQuestProgress()
         elseif event == "QUEST_COMPLETE" then
-            print("quest complete")
             onQuestComplete()
         elseif event == "QUEST_LOG_UPDATE" then
             onQuestLogUpdate()
@@ -725,29 +777,81 @@ do -- Manage quests and dialog
             local questID = ...
             removeQuest(questID)
         elseif event == "CONFIRM_BINDER" then
-            onConfirmBinder()
+            if PoliQuestOptionFrame5CheckButton:GetChecked() then
+                onConfirmBinder()
+            end
         elseif event == "GOSSIP_CLOSED" then
-            onConfirmBinder()
+            if PoliQuestOptionFrame5CheckButton:GetChecked() then
+                onConfirmBinder()
+            end
         elseif event == "PLAYER_ENTERING_WORLD" then
             initializeQuestIDToName()
             initializeActiveQuests()
         end
     end
     
-    questAndDialogHandler = CreateFrame("Frame")
-    questAndDialogHandler:RegisterEvent("GOSSIP_SHOW")
-    questAndDialogHandler:RegisterEvent("GOSSIP_CONFIRM")
-    questAndDialogHandler:RegisterEvent("QUEST_GREETING")
-    questAndDialogHandler:RegisterEvent("QUEST_DETAIL")
-    questAndDialogHandler:RegisterEvent("QUEST_PROGRESS")
-    questAndDialogHandler:RegisterEvent("QUEST_COMPLETE")
-    questAndDialogHandler:RegisterEvent("QUEST_LOG_UPDATE")
-    questAndDialogHandler:RegisterEvent("QUEST_ACCEPT_CONFIRM")
-    questAndDialogHandler:RegisterEvent("QUEST_REMOVED")
-    questAndDialogHandler:RegisterEvent("CONFIRM_BINDER")
-    questAndDialogHandler:RegisterEvent("PLAYER_ENTERING_WORLD")
+    local questAndDialogHandler = CreateFrame("Frame", "PoliQuestAndDialogHandler")
     questAndDialogHandler:SetScript("OnEvent", onEvent)
+    questAndDialogHandler:RegisterEvent("PLAYER_ENTERING_WORLD")
+    questAndDialogHandler.Events = {
+       "GOSSIP_SHOW",
+       "GOSSIP_CONFIRM",
+       "QUEST_GREETING",
+       "QUEST_DETAIL",
+       "QUEST_PROGRESS",
+       "QUEST_COMPLETE",
+       "QUEST_LOG_UPDATE",
+       "QUEST_ACCEPT_CONFIRM",
+       "QUEST_REMOVED",
+       "CONFIRM_BINDER",
+       "GOSSIP_CLOSED"
+    }
 end
+
+do -- Set hearthstone
+
+    local onGossipShow_setHearth = function()
+        if innWhitelist[GossipFrameNpcNameText:GetText()] then
+            local gossipOptions = C_GossipInfo.GetOptions()
+            local numOptions = C_GossipInfo.GetNumOptions()
+            for i=1, numOptions do
+                if gossipOptions[i]["type"] == "binder" then
+                    C_GossipInfo.SelectOption(i)
+                    StaticPopup1Button1:Click("LeftButton")
+                end
+            end
+        end
+    end
+
+    local onConfirmBinder = function()
+        if UnitLevel("player") < 60 then
+            local targetName = UnitName("target")
+            if GossipFrameNpcNameText:GetText() and innWhitelist[GossipFrameNpcNameText:GetText()]
+            or targetName and innWhitelist[targetName] then
+                StaticPopup1Button1:Click()
+            end
+        end
+    end
+
+    local onEvent = function(self, event, ...)
+        if event == "GOSSIP_SHOW" then
+            onGossipShow_setHearth()
+        elseif event == "CONFIRM_BINDER" then
+            onConfirmBinder()
+        elseif event == "GOSSIP_CLOSED" then
+            onConfirmBinder()
+        end
+    end
+    
+    local hearthHandler = CreateFrame("Frame", "PoliHearthHandler")
+    hearthHandler:SetScript("OnEvent", onEvent)
+    hearthHandler.Events = {
+       "GOSSIP_SHOW",
+       "CONFIRM_BINDER",
+       "GOSSIP_CLOSED"
+    }
+end
+
 
 do -- Equip higher ilvl quest loot
 
@@ -880,9 +984,11 @@ do -- Equip higher ilvl quest loot
         end
     end
     
-    local questLootHandler = CreateFrame("Frame")
-    questLootHandler:RegisterEvent("QUEST_LOOT_RECEIVED")
-    questLootHandler:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
+    local questLootHandler = CreateFrame("Frame", "PoliQuestLootHandler")
+    questLootHandler.Events = {
+        "QUEST_LOOT_RECEIVED",
+        "PLAYER_EQUIPMENT_CHANGED"
+    }
     questLootHandler:SetScript("OnEvent", onEvent)
     questLootHandler:SetScript("OnUpdate", onUpdate)
 end
@@ -928,4 +1034,76 @@ do -- Manage quest emotes
     emoteFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
     emoteFrame:RegisterEvent("CHAT_MSG_SAY")
     emoteFrame:SetScript("OnEvent", onEvent)
+end
+
+do -- Load and set variables
+    local onEvent = function(self, event, ...)
+        
+        if event == "ADDON_LOADED" and ... == "PoliQuest" then
+            if PoliSavedVars == nil then
+                PoliSavedVars = {}
+                unlockQuestButton()
+                registerEvents(PoliQuestAndDialogHandler)
+                PoliQuestOptionFrame1CheckButton:SetChecked(true)
+                PoliQuestLootAutomationEnabled = true
+                PoliQuestOptionFrame2CheckButton:SetChecked(true)
+                PoliQuestStrictAutomation = false
+                PoliQuestOptionFrame3CheckButton:SetChecked(false)
+                registerEvents(PoliQuestLootHandler)
+                PoliQuestOptionFrame4CheckButton:SetChecked(true)
+                PoliQuestOptionFrame5CheckButton:SetChecked(true)
+            else
+                if PoliSavedVars.questAutomationEnabled then
+                    registerEvents(PoliQuestAndDialogHandler)
+                    PoliQuestOptionFrame1CheckButton:SetChecked(true)
+                else
+                    PoliQuestOptionFrame1CheckButton:SetChecked(false)
+                end
+                
+                if PoliSavedVars.questLootAutomationEnabled then
+                    PoliQuestOptionFrame2CheckButton:SetChecked(true)
+                    PoliQuestLootAutomationEnabled = true
+                else
+                    PoliQuestOptionFrame2CheckButton:SetChecked(false)
+                    PoliQuestLootAutomationEnabled = false
+                end
+                
+                if PoliSavedVars.questStrictAutomation then
+                    PoliQuestOptionFrame3CheckButton:SetChecked(true)
+                    PoliQuestStrictAutomation = true
+                else
+                    PoliQuestOptionFrame3CheckButton:SetChecked(false)
+                    PoliQuestStrictAutomation = false
+                end
+                if PoliSavedVars.questLootEquipAutomationEnabled then
+                    registerEvents(PoliQuestLootHandler)
+                    PoliQuestOptionFrame4CheckButton:SetChecked(true)
+                else
+                    PoliQuestOptionFrame4CheckButton:SetChecked(false)
+                end
+                
+                 if PoliSavedVars.hearthAutomationEnabled and not PoliSavedVars.questAutomationEnabled then
+                     registerEvents(PoliHearthHandler)
+                     PoliQuestOptionFrame5CheckButton:SetChecked(true)
+                 else
+                    PoliQuestOptionFrame5CheckButton:SetChecked(false)
+                 end
+                
+                POLIQUESTS = C_QuestLog.GetAllCompletedQuestIDs()
+                questButtonManager.Button:SetPoint(PoliSavedVars.relativePoint, UIParent, PoliSavedVars.xOffset, PoliSavedVars.yOffset)
+            end
+        elseif event == "PLAYER_LOGOUT" then
+            PoliSavedVars.questAutomationEnabled = PoliQuestOptionFrame1CheckButton:GetChecked()
+            PoliSavedVars.questLootAutomationEnabled = PoliQuestOptionFrame2CheckButton:GetChecked()
+            PoliSavedVars.questStrictAutomation = PoliQuestOptionFrame3CheckButton:GetChecked()
+            PoliSavedVars.questLootEquipAutomationEnabled = PoliQuestOptionFrame4CheckButton:GetChecked()
+            PoliSavedVars.hearthAutomationEnabled = PoliQuestOptionFrame5CheckButton:GetChecked()
+            PoliSavedVars.relativePoint, PoliSavedVars.xOffset, PoliSavedVars.yOffset = select(3,  questButtonManager.Button:GetPoint(1))
+            PoliSavedVars.quests = POLIQUESTS
+        end
+    end
+    local addonLoadedFrame = CreateFrame("Frame")
+    addonLoadedFrame:RegisterEvent("ADDON_LOADED")
+    addonLoadedFrame:RegisterEvent("PLAYER_LOGOUT")
+    addonLoadedFrame:SetScript("OnEvent", onEvent)
 end

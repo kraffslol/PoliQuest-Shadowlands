@@ -1,7 +1,10 @@
 local _, addonTable = ...
 
+--[[
+PoliSavedVars = {}
+
 setPoliSavedVars = function()
-    PoliSavedVars = C_QuestLog.GetAllCompletedQuestIDs()
+    PoliSavedVars.quests = C_QuestLog.GetAllCompletedQuestIDs()
 end
 
 compareQuestIDs = function()
@@ -34,19 +37,56 @@ validateQuests = function()
     QuestNameScanningTooltip:SetOwner(UIParent,"ANCHOR_NONE")
     local verified = {}
     local count = 1
-    while #PoliSavedVars > 0 do
-        for i=#PoliSavedVars, 1, -1 do
+    while #PoliSavedVars.quests > 0 do
+        for i=#PoliSavedVars.quests, 1, -1 do
             QuestNameScanningTooltip:ClearLines()
             QuestNameScanningTooltip:SetHyperlink("quest:"..PoliSavedVars[i])
             local tooltipQuestName = QuestNameScanningTooltipTextLeft1:GetText()
             if tooltipQuestName ~= nil then
-                verified[toolTipQuestName] = PoliSavedVars[i]
-                table.remove(PoliSavedVars)
+                verified[toolTipQuestName] = PoliSavedVars.quests[i]
+                table.remove(PoliSavedVars.quests)
             end
         end
     end
-    PoliSavedVars = verified
-end
+    PoliSavedVars.quests = verified
+end]]
+
+addonTable.innWhitelist = {
+
+    -- Bastion
+    ["Caretaker Calisaphene"] = true,
+    ["Caretaker Mirene"] = true,
+    ["Caretaker Theo"] = true,
+    ["Inkiep"] = true,
+
+    -- Maldraxxus
+    ["Kere Kinblade"] = true,
+    ["Slumbar Valorum"] = true,
+    
+    -- Ardenweald
+    ["Flitterbit"] = true,
+    ["Flwngyrr"] = true,
+    ["Kewarin"] = true,
+    ["Llar'reth"] = true,
+    ["Nolon"] = true,
+    ["Sanna"] = true,
+    ["Shelynn"] = true,
+    ["Taiba"] = true,
+    
+    -- Revendreth
+    ["Absolooshun"] = true,
+    ["Delia"] = true,
+    ["Ima"] = true,
+    ["Mims"] = true,
+    ["Roller"] = true,
+    ["Soultrapper Valistra"] = true,
+    ["Tavian"] = true,
+    ["Tremen Winefang"] = true,
+    
+    -- Oribos
+    ["Host Ta'rela"] = true
+}
+
 
 addonTable.questItems = {
     [178495] = { -- Shattered Helm of Domination
@@ -186,6 +226,7 @@ addonTable.itemEquipLocToEquipSlot = {
 
 addonTable.questNameToID = {
     
+    ["An Urgent Request"] = 60115,
     -- The Maw
     ["A Chilling Summons"] = 61874,
     ["Through the Shattered Sky"] = 59751,
@@ -534,7 +575,7 @@ addonTable.questNameToID = {
     ["Archival Protection"] = 60900,
     ["Trust Fall"] = 59994,
     ["A Complete Set"] = 58623,
-    
+    ["Bet On Yourself"] = 59827,
     ["Kill Them Of Course"] = 59917,
     ["...Even The Most Ridiculous Request!"] = 58068,
     ["Juicing Up"] = 58088,
@@ -684,7 +725,7 @@ addonTable.dialogWhitelist = {
     ["A Doorway Through the Veil"] = {
         ["npc"] = "Ebon Blade Acolyte",
         ["dialog"] = {
-            "Come with me. Let's head outside.",
+            "Let's head outside.",
             "Summon the portals here."
         }
     },
