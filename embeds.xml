@@ -101,6 +101,7 @@
             </OnDragStop>
             <OnHide>
                 PoliQuestAddonInfoFrame:Hide()
+                PoliQuestConfigFrameDiscordLink:Hide()
             </OnHide>
         </Scripts>
         <Frames>
@@ -423,13 +424,38 @@
                 <Scripts>
                     <OnClick>
                         if PoliQuestAddonInfoFrame:IsVisible() then
+                            PoliQuestConfigFrameDiscordLink:Hide()
                             PoliQuestAddonInfoFrame:Hide()
                         else
+                            PoliQuestConfigFrameDiscordLink:Show()
                             PoliQuestAddonInfoFrame:Show()
                         end
                     </OnClick>
                 </Scripts>
              </Button>
+             <EditBox name="$parentDiscordLink" enableMouse="true" hidden="true">
+                <Size x="150" y="24" />
+                <Anchors>
+                    <Anchor point="TOP" relativeTo="$parentToggleButton" relativePoint="BOTTOM" />
+                </Anchors>
+                <FontString inherits="ChatFontNormal"/>
+                <Scripts>
+                    <OnShow>
+                        self:SetText("https://discord.gg/nc4ECEw")
+                        self:SetAutoFocus(true)
+                        self:HighlightText()
+                    </OnShow>
+                    <OnHide>
+                        self:SetText("https://discord.gg/nc4ECEw")
+                        self:SetAutoFocus(true)
+                        self:HighlightText()
+                    </OnHide>
+                    <OnEscapePressed>
+                        self:SetAutoFocus(false)
+                        self:ClearFocus()
+                    </OnEscapePressed>
+                </Scripts>
+            </EditBox>
         </Frames>
     </Frame>
     
