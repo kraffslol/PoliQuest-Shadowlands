@@ -6,6 +6,12 @@ local questNameToID = addonTable.questNameToID
 local dialogWhitelist = addonTable.dialogWhitelist
 local innWhitelist = addonTable.innWhitelist
 
+local debugPrint = function(text)
+    if POLIQUEST_DEBUG_ENABLED then
+        print(text)
+    end
+end
+
 SLASH_PoliQuest1 = "/poliquest"
 SLASH_PoliQuest2 = "/pq"
 
@@ -138,6 +144,16 @@ do -- Manage usable quest items
             local startTime, duration = GetItemCooldown(itemID)
             if startTime ~= 0 and duration ~= 0 then
                 frame.Cooldown:SetCooldown(startTime, duration)
+            else
+                frame.Cooldown:SetCooldown(0, 0)
+            end
+            if currentItemIndex then
+                local itemCount = GetItemCount(currentItems[currentItemIndex])
+                if itemCount > 1 then
+                    frame.FontString:SetText(itemCount)
+                else
+                    frame.FontString:SetText("")
+                end
             end
             if #currentItems == 1 then
                 frame.PrevButton:Disable()
@@ -165,10 +181,10 @@ do -- Manage usable quest items
             else
                 frame.PrevButton:Enable()
                 frame.NextButton:Enable()
-                frame.ViewPrev.Texture:SetTexture(GetItemIcon(currentItems[#currentItems-1]))
+                frame.ViewPrev.Texture:SetTexture(GetItemIcon(currentItems[currentItemIndex-1]))
                 frame.ViewPrev:Enable()
                 frame.ViewPrev:Show()
-                frame.ViewNext.Texture:SetTexture(GetItemIcon(currentItems[#currentItems+1]))
+                frame.ViewNext.Texture:SetTexture(GetItemIcon(currentItems[currentItemIndex+1]))
                 frame.ViewNext:Enable()
                 frame.ViewNext:Show()
             end
@@ -213,9 +229,17 @@ do -- Manage usable quest items
             end
         elseif event == "BAG_UPDATE" or event == "BAG_UPDATE_COOLDOWN"
         or event == "PLAYER_ENTERING_WORLD" then
+            if currentItemIndex then
+                local itemCount = GetItemCount(currentItems[currentItemIndex])
+                if itemCount > 1 then
+                    self.FontString:SetText(itemCount)
+                else
+                    self.FontString:SetText("")
+                end
+            end
             throttleItemCheck = GetTime()
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-            --print(...)
+            print(...)
             if currentItemIndex and questItems[currentItems[currentItemIndex]]["spellID"] == select(3, ...) and questItems[currentItems[currentItemIndex]]["cooldown"] then
                 self.Cooldown:SetCooldown(GetTime(), questItems[currentItems[currentItemIndex]]["cooldown"])
             end
@@ -271,7 +295,7 @@ do -- Manage usable quest items
     questButton.Cooldown:SetAllPoints(questButton)
     questButton.FontString = questButton:CreateFontString("PoliQuestItemCount", "BACKGROUND")
     questButton.FontString:SetPoint("BOTTOMRIGHT", -4, 4)
-    questButton.FontString:SetTextHeight(16)
+    questButton.FontString:SetFont("Fonts\\FRIZQT__.TTF", 20, "OUTLINE, MONOCHROME")
     questButtonManager.Button = questButton
     
     -- left arrow button
@@ -361,7 +385,7 @@ do -- Manage quests and dialog
         for _, v in ipairs(activeQuests) do
             quests = string.join(", ", quests, v)
         end
-        print("Active quests: " .. string.sub(quests, 3))
+        debugPrint("Active quests: " .. string.sub(quests, 3))
     end
     local initializeActiveQuests = function()
         activeQuests = {}
@@ -399,7 +423,7 @@ do -- Manage quests and dialog
         local actQuests = C_GossipInfo.GetActiveQuests()
         for i, v in ipairs(actQuests) do
             if questIDToName[v.questID] and v.isComplete then
-                print("onGossipShow | SelectActiveQuest: " .. v.questID)
+                debugPrint("onGossipShow | SelectActiveQuest: " .. v.questID)
                 C_GossipInfo.SelectActiveQuest(i)
                 return
             end
@@ -408,7 +432,7 @@ do -- Manage quests and dialog
         local availableQuests = C_GossipInfo.GetAvailableQuests()
         for i, v in ipairs(availableQuests) do
             if questIDToName[v.questID] then
-                print("onGossipShow | SelectAvailableQuest: " .. v.questID)
+                debugPrint("onGossipShow | SelectAvailableQuest: " .. v.questID)
                 C_GossipInfo.SelectAvailableQuest(i)
                 return
             end
@@ -462,16 +486,12 @@ do -- Manage quests and dialog
             end
         end
         table.insert(activeQuests, questID)
-        --print(string.join(" ", "Quest added:", C_QuestLog.GetTitleForQuestID(questID), questID))
-        --printActiveQuests()
     end
     
     local removeQuest = function(questID)
         for i, v in ipairs(activeQuests) do
             if v == questID then
                 table.remove(activeQuests, i)
-                --print(string.join(" ", "Quest removed:", C_QuestLog.GetTitleForQuestID(questID), questID))
-                --printActiveQuests()
             end
         end
     end
@@ -481,7 +501,7 @@ do -- Manage quests and dialog
         for i=1, GetNumActiveQuests() do
             local questName, isComplete = GetActiveTitle(i)
             if questNameToID[questName] and isComplete then
-                print("onQuestGreeting | completeQuest | SelectActiveQuest: " .. questName)
+                debugPrint("onQuestGreeting | completeQuest | SelectActiveQuest: " .. questName)
                 SelectActiveQuest(i)
                 removeQuest(questName)
                 return
@@ -494,7 +514,7 @@ do -- Manage quests and dialog
         for i=1, GetNumAvailableQuests() do
             local questID = select(5, GetAvailableQuestInfo(i))
             if questIDToName[questID] then
-                print("onQuestGreeting | acceptQuest | SelectAvailableQuest: " .. questID)
+                debugPrint("onQuestGreeting | acceptQuest | SelectAvailableQuest: " .. questID)
                 SelectAvailableQuest(i)
                 insertQuest(questID)
                 return
@@ -514,7 +534,7 @@ do -- Manage quests and dialog
     local onQuestDetail = function()
         if QuestInfoTitleHeader and questNameToID[QuestInfoTitleHeader:GetText()] then
             insertQuest(questNameToID[QuestInfoTitleHeader:GetText()])
-             print("onQuestDetail | AcceptQuest: " .. questNameToID[QuestInfoTitleHeader:GetText()])
+             debugPrint("onQuestDetail | AcceptQuest: " .. questNameToID[QuestInfoTitleHeader:GetText()])
             AcceptQuest()
         end
     end
@@ -525,7 +545,7 @@ do -- Manage quests and dialog
             local questID = questNameToID[QuestProgressTitleText:GetText()]
             if questID and C_QuestLog.IsComplete(questID) then
                 removeQuest(questNameToID[QuestProgressTitleText:GetText()])
-                print("onQuestProgress | CompleteQuest: " .. questID)
+                debugPrint("onQuestProgress | CompleteQuest: " .. questID)
                 CompleteQuest()
             end
         end
@@ -723,7 +743,7 @@ do -- Manage quests and dialog
             removeQuest(QuestInfoTitleHeader:GetText())
             local questRewardIndex = getQuestRewardChoice()
             if questRewardIndex then
-                print("onQuestComplete | GetQuestReward: " .. questNameToID[QuestInfoTitleHeader:GetText()])
+                debugPrint("onQuestComplete | GetQuestReward: " .. questNameToID[QuestInfoTitleHeader:GetText()])
                 GetQuestReward(questRewardIndex)
             end
         end
@@ -736,7 +756,7 @@ do -- Manage quests and dialog
             for i=1,num do
                 local questID = GetAutoQuestPopUp(i)
                 if questIDToName[questID] then
-                    print("onQuestLogUpdate | AutoQuestPopUpTracker_OnMouseDown: " .. questID)
+                    debugPrint("onQuestLogUpdate | AutoQuestPopUpTracker_OnMouseDown: " .. questID)
                     AutoQuestPopUpTracker_OnMouseDown(CAMPAIGN_QUEST_TRACKER_MODULE:GetBlock(questID))
                 end
             end
@@ -871,7 +891,7 @@ do -- Equip higher ilvl quest loot
     end
     
     local isSpecItem = function(itemLink)
-        local specs = GetItemSpecInfo(itemLink)
+        local specs = GetItemSpecInfo(itemLink) or {}
         if #specs == 0 then
             return true
         end
@@ -1041,8 +1061,11 @@ do -- Load and set variables
         
         if event == "ADDON_LOADED" and ... == "PoliQuest" then
             if PoliSavedVars == nil then
+                print("|cFF5c8cc1PoliQuest commands:|r")
+                print("|cFF5c8cc1/pq:|r feature control")
+                print("|cFF5c8cc1/pq toggle:|r edit button position")
                 PoliSavedVars = {}
-                unlockQuestButton()
+                UnlockPoliQuestButton()
                 registerEvents(PoliQuestAndDialogHandler)
                 PoliQuestOptionFrame1CheckButton:SetChecked(true)
                 PoliQuestLootAutomationEnabled = true
@@ -1082,9 +1105,11 @@ do -- Load and set variables
                     PoliQuestOptionFrame4CheckButton:SetChecked(false)
                 end
                 
-                 if PoliSavedVars.hearthAutomationEnabled and not PoliSavedVars.questAutomationEnabled then
-                     registerEvents(PoliHearthHandler)
+                 if PoliSavedVars.hearthAutomationEnabled then
                      PoliQuestOptionFrame5CheckButton:SetChecked(true)
+                     if not PoliSavedVars.questAutomationEnabled then
+                        registerEvents(PoliHearthHandler)
+                    end
                  else
                     PoliQuestOptionFrame5CheckButton:SetChecked(false)
                  end

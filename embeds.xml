@@ -48,7 +48,7 @@
 <br/>
 <p>The button can only be updated out of combat. For example, if you obtain a quest with a quest item in combat, the addon will wait for combat to end before updating the quest item button.  Also, if you have multiple quest items, you will not be able to swap them on the PQButton unless you are out of combat.</p>
 <br/>
-<p>The button can also be clicked with the mouse cursor if designed. You can also mouse over it to get the quest item info. The button should only show when it is unlocked for moving, or you have one or multiple quest items.</p>
+<p>The button can also be clicked with the mouse cursor if desired. You can also mouse over it to get the quest item info. The button should only show when it is unlocked for moving, or you have one or multiple quest items.</p>
 <br/>
 <h2>|cFF5c8cc1Quest Loot Automation Algorithm:|r</h2>
 <br/>

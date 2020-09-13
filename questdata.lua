@@ -191,6 +191,11 @@ addonTable.questItems = {
         ["spellID"] = 328524,
         ["cooldown"] = 5
     },
+     [173691] = { -- Anima Drainer
+        ["count"] = 0,
+        ["spellID"] = 310984,
+        ["cooldown"] = nil
+    },
 }
 
 addonTable.itemEquipLocToEquipSlot = {
@@ -553,7 +558,9 @@ addonTable.questNameToID = {
     
     -- Optional quests
     -- Bastion
-    ["An Act of Service"] = 60466,
+    ["The Old Ways"] = 60466,
+    ["A Gift for An Acolyte"] = 62714,
+    ["More Than A Gift"] = 62715,
     ["WANTED: Altered Sentinel"] = 60316,
     ["An Inspired Moral Inventory"] = 57444,
     ["WANTED: Darkwing"] = 60366,
@@ -566,6 +573,16 @@ addonTable.questNameToID = {
     ["Wicked Gateways"] = 57554,
     ["On Wounded Wings"] = 57553,
     ["Shadow's Fall"] = 57555,
+    ["Suggested Reading"] = 57712,
+    ["Hero's Rest"] = 62718,
+    ["Garden in Turmoil"] = 57529,
+    ["Disturbing the Peace"] = 57538,
+    ["Distractions for Kala"] = 57545,
+    ["A Test of Courage"] = 57547,
+    ["A Friendly Rivalry"] = 59674,
+    ["Tough Love"] = 57568,
+    ["Phalynx Malfunction"] = 57931,
+    ["Resource Drain"] = 57932,
     
     -- Maldraxxus
     ["Read Between the Lines"] = 58619,
@@ -755,6 +772,11 @@ addonTable.dialogWhitelist = {
             "I will go with you."
         }
     },
+     ["Seek the Ascended"] = {
+        ["npc"] = "Pathscribe Roh-Avonavi",
+        ["dialog"] = "I am ready. Send me to Bastion."
+    },
+    
     ["Welcome to Eternity"] = {
         ["npc"] = "Kleia",
         ["dialog"] = "Lead on, Kleia."
@@ -894,6 +916,10 @@ addonTable.dialogWhitelist = {
     ["A Time for Courage"] = {
         ["npc"] = "Thanikos",
         ["dialog"] = "I am ready."
+    },
+    ["If You Want Peace..."] = {
+        ["npc"] = "Pathscribe Roh-Avonavi",
+        ["dialog"] = "I am ready. Send me to Maldraxxus."
     },
     ["The House of the Chosen"] = {
         ["npc"] = "Baroness Draka",
@@ -1179,6 +1205,16 @@ addonTable.dialogWhitelist = {
     },
     
     -- Optional
+    ["Suggested Reading"] = {
+        ["npc"] = {
+            "Aspirant Leda",
+            "Aspirant Ikaran"
+        },
+        ["dialog"] = {
+            "Do you have \"Worlds Beyond Counting?\"",
+            "Do you have \"The Infinite Treatises?\""
+        }
+    },
     ["Read Between the Lines"] = {
         ["npc"] = "Ta'eran",
         ["dialog"] = "Tell me about this opportunity."
