@@ -22,7 +22,6 @@ local registerEvents = function(frame)
 end
 
 local questButtonManager
-local buttonLocked = true
 local onEnterScript
 UnlockPoliQuestButton = function()
     local button = questButtonManager.Button
@@ -45,7 +44,6 @@ UnlockPoliQuestButton = function()
     end
     button.LockButton:Show()
     button:SetMovable(true)
-    buttonLocked = false
 end
 
 LockPoliQuestButton = function()
@@ -57,11 +55,14 @@ LockPoliQuestButton = function()
     end
     button.LockButton:Hide()
     button:SetMovable(false)
-    buttonLocked = true
     print("Button will show when you have a Shadowlands quest item in your bags.")
     print("|cFF5c8cc1/pq toggle:|r to show/move button again.")
 end
-
+local initialCompletedQuestIDs
+local questsCompletedSinceInitialization
+local populateCompletedQuests
+local collectingQuests
+local questIDsExported = false
 SlashCmdList["PoliQuest"] = function(msg)
     local cmd, arg = string.split(" ", msg)
     if cmd == "" then
@@ -73,16 +74,96 @@ SlashCmdList["PoliQuest"] = function(msg)
     elseif cmd == "toggle" then
         if InCombatLockdown() then
             print("Quest Item Button can only be locked/unlocked outside of combat.")
-        elseif buttonLocked then
+        elseif not PQButton.LockButton:IsVisible() then
             UnlockPoliQuestButton()
         else
             LockPoliQuestButton()
         end
+    elseif cmd == "initialize" then
+        if PoliQuestIDs.initialCompletedQuestIDs then
+            print("Quest ID tracking already initialized.  Delete PoliQuest SavedVariables for this character if you want to reinitialize.")
+            return
+        end
+        initialCompletedQuestIDs = C_QuestLog.GetAllCompletedQuestIDs()
+        if initialCompletedQuestIDs ~= nil and #initialCompletedQuestIDs > 0 then
+            print("Collected initial completed quests.  Logout to complete this process, and type '|cFF5c8cc1/pq initialize|r' again to verify that the data was saved.")
+        else
+            print("Failed to collect initial completed quests.  Try again.")
+        end
+    elseif cmd == "export" then
+        if not PoliQuestIDs.initialCompletedQuestIDs then
+            print("Quest ID tracking has not been initialized yet.  Type '|cFF5c8cc1/pq initialize|r' to initialize.")
+            return
+        end
+        populateCompletedQuests()
+        collectingQuests = true
+        questsStartTime = GetTime()
+        print("Collected quests completed since initialization.  Log out to complete this process, and access completed quests in your character's PoliQuest SavedVariables folder.")
     else
         print("|cFF5c8cc1/pq:|r feature control")
+        print("|cFF5c8cc1/pq initialize:|r initialize collection of quest IDs")
         print("|cFF5c8cc1/pq toggle:|r edit button position")
     end
 end
+
+local validQuests = {}
+local populateCounter
+local populateValidQuests = function()
+    local questAdded = false
+    for i=#questsCompletedSinceInitialization, 1, -1 do
+        local questName = C_QuestLog.GetTitleForQuestID(questsCompletedSinceInitialization[i])
+        if questName then
+            validQuests[table.remove(questsCompletedSinceInitialization, i)] = string.lower(questName)
+            questAdded = true
+            if populateCounter then
+                print("Reseting populate counter")
+                populateCounter = nil
+            end
+        end
+    end
+    if questAdded == false then
+        if populateCounter == nil then
+            populateCounter = 5
+            print("No new valid quests found: " .. populateCounter .. " attempts left")
+        else
+            populateCounter = populateCounter - 1
+            if populateCounter == 0 then
+                populateCounter = nil
+                collectingQuests = false
+                questIDsExported = true
+                print("Finished collecting valid completed quests since initialization.")
+                return
+            end
+            print("No new valid quests found: " .. populateCounter .. " attempts left")
+        end
+    end
+    questsStartTime = GetTime()
+end
+
+local exportQuestFrame = CreateFrame("Frame", "PoliExportQuestFrame")
+exportQuestFrame:SetScript("OnUpdate", function()
+    if collectingQuests and questsStartTime  + 1 < GetTime() then
+        populateValidQuests()
+    end
+end)
+
+populateCompletedQuests = function()
+    validQuests = {}
+    questsCompletedSinceInitialization = {}
+    local currentCompletedQuestIDs = C_QuestLog.GetAllCompletedQuestIDs()
+    local numInitialCompletedQuestIDs = #PoliQuestIDs.initialCompletedQuestIDs
+    for _, v1 in ipairs(currentCompletedQuestIDs) do
+        for i, v2 in ipairs(PoliQuestIDs.initialCompletedQuestIDs) do
+            if v1 == v2 then
+                break
+            elseif i == numInitialCompletedQuestIDs then
+                table.insert(questsCompletedSinceInitialization, v1)
+            end
+        end
+    end
+end
+
+
 
 do -- Manage usable quest items
     local currentItems = {}
@@ -239,7 +320,7 @@ do -- Manage usable quest items
             end
             throttleItemCheck = GetTime()
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-            print(...)
+            debugPrint(...)
             if currentItemIndex and questItems[currentItems[currentItemIndex]]["spellID"] == select(3, ...) and questItems[currentItems[currentItemIndex]]["cooldown"] then
                 self.Cooldown:SetCooldown(GetTime(), questItems[currentItems[currentItemIndex]]["cooldown"])
             end
@@ -364,9 +445,6 @@ do -- Manage usable quest items
     lockButton.FontString:SetText("MOVE")
     
     updateButton(questButton, true)
-    if not buttonLocked then
-        unlockButton()
-    end
 end
 
 do -- Manage quests and dialog
@@ -1052,7 +1130,6 @@ do -- Manage quest emotes
         if event == "PLAYER_TARGET_CHANGED" then
             local targetName = UnitName("target")
             if targetName and targetWhitelist[targetName] and C_QuestLog.GetLogIndexForQuestID(targetWhitelist[targetName]["questID"]) then
-                print("doing emote")
                 DoEmote(targetWhitelist[targetName]["emote"])
             elseif pendingEmote and targetName == "Playful Trickster" then
                 DoEmote(pendingEmote)
@@ -1141,9 +1218,12 @@ do -- Load and set variables
                  else
                     PoliQuestOptionFrame5CheckButton:SetChecked(false)
                  end
-                
-                POLIQUESTS = C_QuestLog.GetAllCompletedQuestIDs()
                 questButtonManager.Button:SetPoint(PoliSavedVars.relativePoint, UIParent, PoliSavedVars.xOffset, PoliSavedVars.yOffset)
+            end
+            
+            if PoliQuestIDs == nil then
+                PoliQuestIDs = {}
+                print("Type '|cFF5c8cc1/pq initialize|r' to start collecting completed quest IDs.")
             end
         elseif event == "PLAYER_LOGOUT" then
             PoliSavedVars.questAutomationEnabled = PoliQuestOptionFrame1CheckButton:GetChecked()
@@ -1152,7 +1232,12 @@ do -- Load and set variables
             PoliSavedVars.questLootEquipAutomationEnabled = PoliQuestOptionFrame4CheckButton:GetChecked()
             PoliSavedVars.hearthAutomationEnabled = PoliQuestOptionFrame5CheckButton:GetChecked()
             PoliSavedVars.relativePoint, PoliSavedVars.xOffset, PoliSavedVars.yOffset = select(3,  questButtonManager.Button:GetPoint(1))
-            PoliSavedVars.quests = POLIQUESTS
+            if initialCompletedQuestIDs then
+                PoliQuestIDs.initialCompletedQuestIDs = initialCompletedQuestIDs
+            end
+            if questIDsExported then
+                PoliQuestIDs.questsCompletedSinceInitialization = validQuests
+            end
         end
     end
     local addonLoadedFrame = CreateFrame("Frame")

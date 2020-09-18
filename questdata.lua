@@ -607,10 +607,11 @@ addonTable.questNameToID = {
     ["Working For The Living"] = 59837,
     ["A Sure Bet"] = 58900,
     ["The Ladder"] = 57316,  -- currently broken
-    ["Plagues Aid"] = 59430,
+    ["A Plague On Your House"] = 59430,
     ["Pool of Potions"] = 58431,
     ["Callous Concoctions"] = 57301,
     ["Plaguefall: Knee Deep In It"] = 59520,
+    ["I Could Be A Contender"] = 62785,
     
     -- Ardenweald
     ["In Need of Gorm Gris"] = 57952,
@@ -1249,14 +1250,14 @@ addonTable.dialogWhitelist = {
         ["npc"] = "Arena Spectator",
         ["dialog"] = "Ad'narim claims you owe her anima."
     },
-    ["Plagues Aid"] = {
+    ["A Plague On Your House"] = {
         ["npc"] = {
             "Vial Master Lurgy",
             "Foul-Tongue Cyrlix",
             "Boil Master Yetch"
         },
         ["dialog"] = {
-            "Is there anyway I can help?",
+            "Is there any way I can help?",
             "O.K."
         }
     },

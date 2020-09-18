@@ -3,6 +3,7 @@
 ## Title: PoliQuest
 ## Notes: Quest automation addon for Shadowlands
 ## SavedVariables: PoliSavedVars
+## SavedVariablesPerCharacter: PoliQuestIDs
 embeds.xml
 questdata.lua
 PoliQuest.lua
