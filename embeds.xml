@@ -397,7 +397,7 @@
                         self:RegisterEvent("PLAYER_REGEN_DISABLED")
                     </OnLoad>
                     <OnClick>
-                        if PQButton:IsVisible() then
+                        if PQButton.LockButton:IsVisible() then
                             LockPoliQuestButton()
                         else
                             UnlockPoliQuestButton()
@@ -481,6 +481,7 @@
                 <Scripts>
                     <OnClick>
                         self:GetParent():Hide()
+                        PoliQuestConfigFrameDiscordLink:Hide()
                     </OnClick>
                 </Scripts>
              </Button>

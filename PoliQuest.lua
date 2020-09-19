@@ -22,7 +22,6 @@ local registerEvents = function(frame)
 end
 
 local questButtonManager
-local buttonLocked = true
 local onEnterScript
 UnlockPoliQuestButton = function()
     local button = questButtonManager.Button
@@ -45,7 +44,6 @@ UnlockPoliQuestButton = function()
     end
     button.LockButton:Show()
     button:SetMovable(true)
-    buttonLocked = false
 end
 
 LockPoliQuestButton = function()
@@ -57,7 +55,6 @@ LockPoliQuestButton = function()
     end
     button.LockButton:Hide()
     button:SetMovable(false)
-    buttonLocked = true
     print("Button will show when you have a Shadowlands quest item in your bags.")
     print("|cFF5c8cc1/pq toggle:|r to show/move button again.")
 end
@@ -73,7 +70,7 @@ SlashCmdList["PoliQuest"] = function(msg)
     elseif cmd == "toggle" then
         if InCombatLockdown() then
             print("Quest Item Button can only be locked/unlocked outside of combat.")
-        elseif buttonLocked then
+        elseif not PQButton.LockButton:IsVisible() then
             UnlockPoliQuestButton()
         else
             LockPoliQuestButton()
@@ -239,7 +236,7 @@ do -- Manage usable quest items
             end
             throttleItemCheck = GetTime()
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-            print(...)
+            debugPrint(...)
             if currentItemIndex and questItems[currentItems[currentItemIndex]]["spellID"] == select(3, ...) and questItems[currentItems[currentItemIndex]]["cooldown"] then
                 self.Cooldown:SetCooldown(GetTime(), questItems[currentItems[currentItemIndex]]["cooldown"])
             end
@@ -364,9 +361,6 @@ do -- Manage usable quest items
     lockButton.FontString:SetText("MOVE")
     
     updateButton(questButton, true)
-    if not buttonLocked then
-        unlockButton()
-    end
 end
 
 do -- Manage quests and dialog
@@ -1052,7 +1046,6 @@ do -- Manage quest emotes
         if event == "PLAYER_TARGET_CHANGED" then
             local targetName = UnitName("target")
             if targetName and targetWhitelist[targetName] and C_QuestLog.GetLogIndexForQuestID(targetWhitelist[targetName]["questID"]) then
-                print("doing emote")
                 DoEmote(targetWhitelist[targetName]["emote"])
             elseif pendingEmote and targetName == "Playful Trickster" then
                 DoEmote(pendingEmote)
@@ -1141,8 +1134,6 @@ do -- Load and set variables
                  else
                     PoliQuestOptionFrame5CheckButton:SetChecked(false)
                  end
-                
-                POLIQUESTS = C_QuestLog.GetAllCompletedQuestIDs()
                 questButtonManager.Button:SetPoint(PoliSavedVars.relativePoint, UIParent, PoliSavedVars.xOffset, PoliSavedVars.yOffset)
             end
         elseif event == "PLAYER_LOGOUT" then
@@ -1152,7 +1143,6 @@ do -- Load and set variables
             PoliSavedVars.questLootEquipAutomationEnabled = PoliQuestOptionFrame4CheckButton:GetChecked()
             PoliSavedVars.hearthAutomationEnabled = PoliQuestOptionFrame5CheckButton:GetChecked()
             PoliSavedVars.relativePoint, PoliSavedVars.xOffset, PoliSavedVars.yOffset = select(3,  questButtonManager.Button:GetPoint(1))
-            PoliSavedVars.quests = POLIQUESTS
         end
     end
     local addonLoadedFrame = CreateFrame("Frame")
