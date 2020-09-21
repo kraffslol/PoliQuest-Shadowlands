@@ -24,13 +24,13 @@
 <p>The following tasks are automated for Shadowlands questing:</p>
 <br/>
 <p>- Keybinding quest items to the PQButton</p>
-<p>- Accepting quests</p>
-<p>- Completing quests</p>
+<p>- Accepting quests (quests below lvl 60 only)</p>
+<p>- Completing quests (quests below lvl 60 only)</p>
 <p>- Interacting with NPC quest dialog</p>
 <p>- Performing emotes for quest criteria</p>
 <p>- Setting hearth at Shadowlands inns (below lvl 60 only)</p>
-<p>- Choosing quest rewards (except for some edge cases)</p>
-<p>- Equipping quest loot upgrades</p>
+<p>- Choosing quest rewards (quests below lvl 60 only)</p>
+<p>- Equipping quest loot upgrades (BoP loot only)</p>
 <br/>
 <h2>|cFF5c8cc1Keybinding the quest item button:|r</h2>
 <br/>
