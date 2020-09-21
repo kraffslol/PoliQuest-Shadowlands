@@ -885,14 +885,14 @@ do -- Equip higher ilvl quest loot
         if event == "QUEST_LOOT_RECEIVED" then
             local link = select(2, ...)
             if isBoPEquipableSpecItem(link) then
-                print("is BOP")
+                debugPrint("is BOP")
                 table.insert(questLootItemLinks, link)
                 questLootReceivedTime = GetTime()
             end
         elseif event == "PLAYER_EQUIPMENT_CHANGED" then
             if #questLootItemLinks > 0 then
                 local equippedItemName = C_Item.GetItemName(ItemLocation:CreateFromEquipmentSlot(...))
-                print(equippedItemName.." equipped") 
+                debugPrint(equippedItemName.." equipped") 
                 for i, v in ipairs(questLootItemLinks) do
                     if equippedItemName == GetItemInfo(v) then
                         table.remove(questLootItemLinks, i)
@@ -911,14 +911,14 @@ do -- Equip higher ilvl quest loot
             questLootReceivedTime = GetTime()
             local bagID, slotIndex = getBagAndSlot(GetItemInfo(questLootItemLinks[#questLootItemLinks]))
             -- Can only identify if it is an upgrade if it is found in bag
-            print("looking for item")
+            debugPrint("looking for item")
             if bagID and slotIndex then
                 local upgrade, slotID = isUpgrade(bagID, slotIndex)
                 if upgrade then
-                    print("is upgrade. attempting to equip.")
+                    debugPrint("is upgrade. attempting to equip.")
                     EquipItemByName(questLootItemLinks[#questLootItemLinks], slotID)
                 else
-                    print("not an upgrade.")
+                    debugPrint("not an upgrade.")
                     table.remove(questLootItemLinks)
                     if #questLootItemLinks == 0 then
                         questLootReceivedTime = nil
