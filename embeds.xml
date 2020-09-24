@@ -26,6 +26,8 @@
 <p>- Keybinding quest items to the PQButton</p>
 <p>- Accepting quests (quests below lvl 60 only)</p>
 <p>- Completing quests (quests below lvl 60 only)</p>
+<p>- Automatically track accepted quests</p>
+<p>- Additionally track quest progress percent</p>
 <p>- Interacting with NPC quest dialog</p>
 <p>- Performing emotes for quest criteria</p>
 <p>- Setting hearth at Shadowlands inns (below lvl 60 only)</p>

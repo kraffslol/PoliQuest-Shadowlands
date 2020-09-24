@@ -683,7 +683,7 @@ do -- Manage quests and dialog
     end
 
     -- adds a quest
-    local onQuestLogUpdate = function()
+    local onQuestLogUpdate_selectPopups = function()
         local num = GetNumAutoQuestPopUps()
         if num > 0 then
             for i=1,num do
@@ -695,6 +695,41 @@ do -- Manage quests and dialog
         end
     end
 
+    local questProgresses = {}
+    local initializeQuestProgresses = function()
+        for i=1, C_QuestLog.GetNumQuestLogEntries() do
+            local questInfo = C_QuestLog.GetInfo(i)
+            if not questInfo.isHidden then
+                local questID = questInfo.questID
+                if questID > 0 then
+                    questProgresses[questID] = GetQuestProgressBarPercent(questID)
+                end
+            end
+        end
+    end
+    
+    local questProgressChanged = function(questID, newProgress)
+        local oldProgress = questProgresses[questID]
+        if not oldProgress or oldProgress ~= newProgress then
+            return true
+        else
+            return false
+        end
+    end
+    local onQuestLogUpdate_reportQuestProgress = function()
+        for i=1, C_QuestLog.GetNumQuestLogEntries() do
+            local questID = C_QuestLog.GetQuestIDForLogIndex(i)
+            local progress  = GetQuestProgressBarPercent(questID)
+            if progress > 0 and questProgressChanged(questID, progress) then
+                local oldProgress = questProgresses[questID] or 0
+                questProgresses[questID] = progress
+                UIErrorsFrame:AddMessage(C_QuestLog.GetInfo(i).title .. ": " .. progress .. "% (" .. string.format("%+d", progress-oldProgress) .. "%)" , 1, 1, 0, 1)
+            end
+        end
+        reportQuestProgressLastRun = GetTime()
+        reportQuestProgressRefreshPending = false
+    end
+
     local onConfirmBinder = function()
         if UnitLevel("player") < 60 then
             local targetName = UnitName("target")
@@ -703,6 +738,10 @@ do -- Manage quests and dialog
                 StaticPopup1Button1:Click()
             end
         end
+    end
+    
+    local onQuestAccepted = function(questID)
+        C_QuestLog.AddQuestWatch(questID, 1)
     end
 
     local onEvent = function(self, event, ...)
@@ -720,7 +759,8 @@ do -- Manage quests and dialog
         elseif event == "QUEST_COMPLETE" then
             onQuestComplete()
         elseif event == "QUEST_LOG_UPDATE" then
-            onQuestLogUpdate()
+            onQuestLogUpdate_selectPopups()
+            reportQuestProgressRefreshPending = true
         elseif event == "CONFIRM_BINDER" then
             if PoliQuestOptionFrame5CheckButton:GetChecked() then
                 onConfirmBinder()
@@ -729,11 +769,23 @@ do -- Manage quests and dialog
             if PoliQuestOptionFrame5CheckButton:GetChecked() then
                 onConfirmBinder()
             end
+        elseif event == "QUEST_ACCEPTED" then
+            onQuestAccepted(...)
+        elseif event == "QUEST_REMOVED" then
+            questProgresses[...] = nil
+        elseif event == "PLAYER_ENTERING_WORLD" then
+            initializeQuestProgresses()
         end
     end
     
     local questAndDialogHandler = CreateFrame("Frame", "PoliQuestAndDialogHandler")
     questAndDialogHandler:SetScript("OnEvent", onEvent)
+    questAndDialogHandler:RegisterEvent("PLAYER_ENTERING_WORLD")
+    questAndDialogHandler:SetScript("OnUpdate", function()
+        if reportQuestProgressRefreshPending and (reportQuestProgressLastRun or 0) + .1 < GetTime() then
+            onQuestLogUpdate_reportQuestProgress()
+        end
+    end)
     questAndDialogHandler.Events = {
        "GOSSIP_SHOW",
        "QUEST_GREETING",
@@ -742,7 +794,9 @@ do -- Manage quests and dialog
        "QUEST_COMPLETE",
        "QUEST_LOG_UPDATE",
        "CONFIRM_BINDER",
-       "GOSSIP_CLOSED"
+       "GOSSIP_CLOSED",
+       "QUEST_ACCEPTED",
+       "QUEST_REMOVED"
     }
 end
 
