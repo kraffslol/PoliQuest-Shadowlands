@@ -238,7 +238,8 @@ do -- Manage usable quest items
             throttleItemCheck = GetTime()
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
             debugPrint(select(3,...))
-            if currentItemIndex and questItems[currentItems[currentItemIndex]]["spellID"] == select(3, ...) and questItems[currentItems[currentItemIndex]]["cooldown"] then
+            if currentItemIndex and questItems[currentItems[currentItemIndex]] and questItems[currentItems[currentItemIndex]]["spellID"] == select(3, ...)
+            and questItems[currentItems[currentItemIndex]]["cooldown"] then
                 self.Cooldown:SetCooldown(GetTime(), questItems[currentItems[currentItemIndex]]["cooldown"])
             end
         end
@@ -268,6 +269,7 @@ do -- Manage usable quest items
     questButton.Texture:SetAllPoints(questButton)
     questButton:SetPoint("CENTER", UIParent, 0, 0)
     questButton:SetSize(64, 64)
+    questButton:SetClampedToScreen(true)
     questButton:SetAttribute("type", "item")
     questButton:RegisterEvent("PLAYER_REGEN_ENABLED")
     questButton:RegisterEvent("PLAYER_REGEN_DISABLED")
@@ -878,7 +880,7 @@ do -- Equip higher ilvl quest loot
     
     local isBoPEquipableSpecItem = function(itemLink)
         local itemEquipLoc = select(9, GetItemInfo(itemLink))
-        if itemEquipLoc ~= "" then
+        if itemEquipLoc ~= "" and itemEquipLocToEquipSlot[itemEquipLoc] then
             if isBoP(itemLink) and isSpecItem(itemLink) then
                 return true
             end
@@ -945,15 +947,18 @@ do -- Equip higher ilvl quest loot
             end
         elseif event == "PLAYER_EQUIPMENT_CHANGED" then
             if #questLootItemLinks > 0 then
-                local equippedItemName = C_Item.GetItemName(ItemLocation:CreateFromEquipmentSlot(...))
-                debugPrint(equippedItemName.." equipped") 
-                for i, v in ipairs(questLootItemLinks) do
-                    if equippedItemName == GetItemInfo(v) then
-                        table.remove(questLootItemLinks, i)
+                local itemLoc = ItemLocation:CreateFromEquipmentSlot(...)
+                if itemLoc:IsValid() then
+                    local equippedItemName = C_Item.GetItemName(ItemLocation:CreateFromEquipmentSlot(...))
+                    debugPrint(equippedItemName.." equipped") 
+                    for i, v in ipairs(questLootItemLinks) do
+                        if equippedItemName == GetItemInfo(v) then
+                            table.remove(questLootItemLinks, i)
+                        end
                     end
-                end
-                if #questLootItemLinks == 0 then
-                    questLootReceivedTime = nil
+                    if #questLootItemLinks == 0 then
+                        questLootReceivedTime = nil
+                    end
                 end
             end
         end
@@ -1077,7 +1082,6 @@ do -- Load and set variables
                 PoliQuestOptionFrame2CheckButton:SetChecked(false)
                 PoliQuestStrictAutomation = false
                 PoliQuestOptionFrame3CheckButton:SetChecked(false)
-                --registerEvents(PoliQuestLootHandler)
                 PoliQuestOptionFrame4CheckButton:SetChecked(false)
                 PoliQuestOptionFrame5CheckButton:SetChecked(false)
             else
@@ -1103,6 +1107,14 @@ do -- Load and set variables
                     PoliQuestOptionFrame3CheckButton:SetChecked(false)
                     PoliQuestStrictAutomation = false
                 end
+                
+                if not PoliQuestOptionFrame1CheckButton:GetChecked() then
+                    PoliQuestOptionFrame2CheckButton:Disable()
+                    PoliQuestOptionFrame3CheckButton:Disable()
+                elseif not PoliQuestOptionFrame2CheckButton:GetChecked() then
+                    PoliQuestOptionFrame3CheckButton:Disable()
+                end
+                
                 if PoliSavedVars.questLootEquipAutomationEnabled then
                     registerEvents(PoliQuestLootHandler)
                     PoliQuestOptionFrame4CheckButton:SetChecked(true)
@@ -1118,7 +1130,11 @@ do -- Load and set variables
                  else
                     PoliQuestOptionFrame5CheckButton:SetChecked(false)
                  end
+                questButtonManager.Button:ClearAllPoints()
                 questButtonManager.Button:SetPoint(PoliSavedVars.relativePoint, UIParent, PoliSavedVars.xOffset, PoliSavedVars.yOffset)
+                print(PoliSavedVars.relativePoint)
+                print(PoliSavedVars.xOffset)
+                print(PoliSavedVars.yOffset)
             end
         elseif event == "PLAYER_LOGOUT" then
             PoliSavedVars.questAutomationEnabled = PoliQuestOptionFrame1CheckButton:GetChecked()
@@ -1126,7 +1142,7 @@ do -- Load and set variables
             PoliSavedVars.questStrictAutomation = PoliQuestOptionFrame3CheckButton:GetChecked()
             PoliSavedVars.questLootEquipAutomationEnabled = PoliQuestOptionFrame4CheckButton:GetChecked()
             PoliSavedVars.hearthAutomationEnabled = PoliQuestOptionFrame5CheckButton:GetChecked()
-            PoliSavedVars.relativePoint, PoliSavedVars.xOffset, PoliSavedVars.yOffset = select(3,  questButtonManager.Button:GetPoint(1))
+            PoliSavedVars.relativePoint, PoliSavedVars.xOffset, PoliSavedVars.yOffset = select(3, questButtonManager.Button:GetPoint(1))
         end
     end
     local addonLoadedFrame = CreateFrame("Frame")
