@@ -6,8 +6,6 @@ PoliQuest is a Shadowlands questing addon that automates a significant portion o
 
 The PQButton is a button that appears when you have a Shadowlands quest item in your bags. The addon automatically binds quest items to this button and allows you to effortlessly use quest items by giving you the option to keybind it.
 
-![PQButton image](https://media.forgecdn.net/attachments/314/709/poliquest-curse-img1.png "PQButton")
-
 The following macro keybinds the PQButton as well as the arrow button that allows you to cycle through the quest items in your bags. Using the macro while not holding ctrl, alt, or shift will use the quest item, and using the macro while holding alt will cycle through the quest items in your bags.
 
 `/click [nomod]PQButton;[mod:alt]PQNext`
@@ -42,6 +40,8 @@ Type "**/pq toggle**" to show/hide the PQButton and reposition it.
 This is my first addon. I learned a lot while making it, and I plan to make more addons in the future. I hope you like it!
 
 [Discord Link](https://discord.gg/nc4ECEw "Discord")
+
+[Curseforge Link](https://www.curseforge.com/wow/addons/poliquest-shadowlands)
 
 **Contribute**
 
