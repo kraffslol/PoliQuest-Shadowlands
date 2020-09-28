@@ -56,7 +56,7 @@ LockPoliQuestButton = function()
     end
     button.LockButton:Hide()
     button:SetMovable(false)
-    print("Button will show when you have a Shadowlands quest item in your bags.")
+    print("|cFF5c8cc1PoliQuest:|r Button will show when you have a Shadowlands quest item in your bags.")
     print("|cFF5c8cc1/pq toggle:|r to show/move button again.")
 end
 
@@ -270,6 +270,7 @@ do -- Manage usable quest items
     questButton:SetPoint("CENTER", UIParent, 0, 0)
     questButton:SetSize(64, 64)
     questButton:SetClampedToScreen(true)
+    questButton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
     questButton:SetAttribute("type", "item")
     questButton:RegisterEvent("PLAYER_REGEN_ENABLED")
     questButton:RegisterEvent("PLAYER_REGEN_DISABLED")
@@ -474,8 +475,14 @@ do -- Manage quests and dialog
 
     -- adds a quest
     local onQuestDetail = function()
-        if QuestInfoTitleHeader and QuestInfoTitleHeader:GetText() and questNames[string.lower(QuestInfoTitleHeader:GetText())] then
-            AcceptQuest()
+        if QuestInfoTitleHeader then
+            if QuestInfoTitleHeader:GetText() and QuestInfoTitleHeader:GetText() ~= "" then
+                if questNames[string.lower(QuestInfoTitleHeader:GetText())] then
+                    AcceptQuest()
+                end
+            else
+                QuestFrame:Hide()
+            end
         end
     end
 
@@ -725,7 +732,7 @@ do -- Manage quests and dialog
             if progress > 0 and questProgressChanged(questID, progress) then
                 local oldProgress = questProgresses[questID] or 0
                 questProgresses[questID] = progress
-                UIErrorsFrame:AddMessage(C_QuestLog.GetInfo(i).title .. ": " .. progress .. "% (" .. string.format("%+d", progress-oldProgress) .. "%)" , 1, 1, 0, 1)
+                UIErrorsFrame:AddMessage(C_QuestLog.GetInfo(i).title .. ": " .. progress .. "% (" .. string.format("%+.1f", progress-oldProgress) .. "%)" , 1, 1, 0, 1)
             end
         end
         reportQuestProgressLastRun = GetTime()
@@ -1071,9 +1078,6 @@ do -- Load and set variables
         
         if event == "ADDON_LOADED" and ... == "PoliQuest" then
             if PoliSavedVars == nil then
-                print("|cFF5c8cc1PoliQuest commands:|r")
-                print("|cFF5c8cc1/pq:|r feature control")
-                print("|cFF5c8cc1/pq toggle:|r edit button position")
                 PoliSavedVars = {}
                 UnlockPoliQuestButton()
                 registerEvents(PoliQuestAndDialogHandler)
@@ -1132,9 +1136,6 @@ do -- Load and set variables
                  end
                 questButtonManager.Button:ClearAllPoints()
                 questButtonManager.Button:SetPoint(PoliSavedVars.relativePoint, UIParent, PoliSavedVars.xOffset, PoliSavedVars.yOffset)
-                print(PoliSavedVars.relativePoint)
-                print(PoliSavedVars.xOffset)
-                print(PoliSavedVars.yOffset)
             end
         elseif event == "PLAYER_LOGOUT" then
             PoliSavedVars.questAutomationEnabled = PoliQuestOptionFrame1CheckButton:GetChecked()

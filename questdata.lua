@@ -624,14 +624,14 @@ addonTable.dialogWhitelist = {
         ["npc"] = "Arena Spectator",
         ["dialog"] = "Ad'narim claims you owe her anima."
     },
-    ["Plagues Aid"] = {
+    ["A Plague On Your House"] = {
         ["npc"] = {
             "Vial Master Lurgy",
             "Foul-Tongue Cyrlix",
             "Boil Master Yetch"
         },
         ["dialog"] = {
-            "Is there anyway I can help?",
+            "Is there any way I can help?",
             "O.K."
         }
     },
@@ -671,6 +671,14 @@ addonTable.dialogWhitelist = {
     ["Ritual of Judgment"] = {
         ["npc"] = "The Accuser",
         ["dialog"] = "I'm ready. Begin the ritual."
+    },
+    ["Journey to Ardenweald"] = {
+        ["npc"] = "Pathscribe Roh-Avonavi",
+        ["dialog"] = "I am ready. Send me to Ardenweald."
+    },
+    ["A Plea to Revendreth"] = {
+        ["npc"] = "Pathscribe Roh-Avonavi",
+        ["dialog"] = "I am ready. Send me to Revendreth."
     }
 }
 

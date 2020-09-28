@@ -17,17 +17,17 @@
 <br/>
 <h2>|cFF5c8cc1Purpose:|r</h2>
 <br/>
-<p>PoliQuest is a simple Shadowlands questing addon that automates a significant portion of the leveling experience.</p>
+<p>PoliQuest is a simple Shadowlands questing addon that automates a significant portion of the leveling experience.  It does not automate quests that require level 60.</p>
 <br/>
 <h2>|cFF5c8cc1Features:|r</h2>
 <br/>
-<p>The following tasks are automated for Shadowlands questing:</p>
+<p>The following tasks are automated for level 50-59 Shadowlands questing:</p>
 <br/>
 <p>- Keybinding quest items to the PQButton</p>
-<p>- Accepting quests (quests below lvl 60 only)</p>
-<p>- Completing quests (quests below lvl 60 only)</p>
-<p>- Automatically track accepted quests</p>
-<p>- Additionally track quest progress percent</p>
+<p>- Accepting quests</p>
+<p>- Completing quests</p>
+<p>- Tracking quests</p>
+<p>- Quest progress percent tracking</p>
 <p>- Interacting with NPC quest dialog</p>
 <p>- Performing emotes for quest criteria</p>
 <p>- Setting hearth at Shadowlands inns (below lvl 60 only)</p>
@@ -46,11 +46,13 @@
 <br/>
 <p>I don't keybind PQPrev since cycling through multiple quest items can be achieved by clicking one of these buttons alone.  However, the option to keybind both is there if you want it.</p>
 <br/>
-<h2>|cFF5c8cc1More info about the quest item button:|r</h2>
+<h2>|cFF5c8cc1More info about the PQButton:|r</h2>
 <br/>
-<p>The button can only be updated out of combat. For example, if you obtain a quest with a quest item in combat, the addon will wait for combat to end before updating the quest item button.  Also, if you have multiple quest items, you will not be able to swap them on the PQButton unless you are out of combat.</p>
+<p>The PQButton can only be updated out of combat. For example, if you obtain a quest with a quest item in combat, the addon will wait for combat to end before updating the PQButton.  Also, if you have multiple quest items, you will not be able to swap them on the PQButton unless you are out of combat.</p>
 <br/>
-<p>The button can also be clicked with the mouse cursor if desired. You can also mouse over it to get the quest item info. The button should only show when it is unlocked for moving, or you have one or multiple quest items.</p>
+<p>The PQButton can also be clicked with the mouse cursor if desired. You can also mouse over it to get the quest item info. The PQButton should only show when it is unlocked for moving, or you have one or multiple quest items.</p>
+<br/>
+<p>There is currently no way of hiding the PQButton if you have a Shadowlands quest item in your bags. I might add this feature if enough people want it.</p>
 <br/>
 <h2>|cFF5c8cc1Quest Loot Automation Algorithm:|r</h2>
 <br/>
