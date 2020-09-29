@@ -5,4 +5,9 @@
 ## SavedVariables: PoliSavedVars
 embeds.xml
 questdata.lua
+ItemHandler.lua
+DialogHandler.lua
+HearthstoneHandler.lua
+RewardsHandler.lua
+EmotesHandler.lua
 PoliQuest.lua

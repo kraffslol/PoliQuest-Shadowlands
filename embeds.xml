@@ -402,9 +402,9 @@
                     </OnLoad>
                     <OnClick>
                         if PQButton.LockButton:IsVisible() then
-                            LockPoliQuestButton()
+                            PoliQuest.LockPoliQuestButton()
                         else
-                            UnlockPoliQuestButton()
+                            PoliQuest.UnlockPoliQuestButton()
                         end
                     </OnClick>
                     <OnEvent>
