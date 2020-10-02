@@ -1,0 +1,4 @@
+package-as: PoliQuest
+
+ignore:
+  - README.md
