@@ -29,6 +29,9 @@ end
 
 addonTable.LockPoliQuestButton = function()
     local button = addonTable.questButtonManager.Button
+    if button:GetAttribute("item") == nil then
+        button:Hide()
+    end
     button.LockButton:Hide()
     button:SetMovable(false)
     print("|cFF5c8cc1PoliQuest:|r Button will show when you have a Shadowlands quest item in your bags.")
