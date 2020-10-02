@@ -12,9 +12,9 @@ The following macro keybinds the PQButton as well as the arrow button that allow
 
 **Commands**
 
-Type "**/pq**" to open the configuration menu.
+Type "**/pq**" or "**/poliquest**" to open the configuration menu.
 
-Type "**/pq toggle**" to show/hide the PQButton and reposition it.
+Type "**/pq toggle**" or "**/poliquest toggle**" to show/hide the PQButton and reposition it.
 
 **Always enabled features**
 
