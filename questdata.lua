@@ -2376,11 +2376,6 @@ addonTable.questItems = {
         ["spellID"] = 311385,
         ["cooldown"] = 6
     },
-    [181551] = {
-        ["count"] = 0,
-        ["spellID"] = 345706,
-        ["cooldown"] = nil
-    },
     [180274] = {
         ["count"] = 0,
         ["spellID"] = 331621,
