@@ -12,16 +12,16 @@ The following macro keybinds the PQButton as well as the arrow button that allow
 
 **Commands**
 
-Type "**/pq**" to open the configuration menu.
+Type "**/pq**" or "**/poliquest**" to open the configuration menu.
 
-Type "**/pq toggle**" to show/hide the PQButton and reposition it.
+Type "**/pq toggle**" or "**/poliquest toggle**" to show/hide the PQButton and reposition it.
 
-**Always enabled features**
+**Always Enabled Features**
 
 - PQButton that automatically binds Shadowlands quest items to it
 - Quest emote automation
 
-**Configurable features**
+**Configurable Features**
 
 - Automatically accept and complete quests (level 50-59 quests only)
 - Automatically select correct quest dialog (level 50-59 quests only)
@@ -31,7 +31,7 @@ Type "**/pq toggle**" to show/hide the PQButton and reposition it.
 - Automatically equip quest loot upgrades (all quests. non-BOE items only)
 - Automatically set hearthstone (less than level 60 only)
 
-**Feature Demo video**
+**Feature Demo Video**
 
 [![PoliQuest video thumbnail](https://img.youtube.com/vi/xXrAWhFgX7s/0.jpg)](https://www.youtube.com/watch?v=xXrAWhFgX7s)
 
